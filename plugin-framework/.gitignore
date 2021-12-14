@@ -1,3 +1,4 @@
 plugin-framework
 wasmer-go
 build
+plugin.wasm

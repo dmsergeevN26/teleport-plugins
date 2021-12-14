@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	"strings"
 	"unicode/utf16"
 	"unicode/utf8"
 
@@ -117,24 +118,28 @@ func DecodeUTF16(b []byte) (string, error) {
 	return ret.String(), nil
 }
 
-func (i *Host) asGetString(s wasmer.Value) string {
+func (i *Host) asGetString(s wasmer.Value) (string, error) {
 	addr := s.I32()
+	if addr == 0 {
+		return "", nil
+	}
+
 	data := i.memory.Data()
 	len := int32(binary.LittleEndian.Uint32(data[addr-4 : addr]))
 	buf := make([]byte, len)
 
-	for i := 0; i < int(len); i += 2 {
-		pos := addr + int32(i)
+	for n := 0; n < int(len); n += 2 {
+		pos := addr + int32(n)
 		c := binary.BigEndian.Uint16(data[pos : pos+2])
-		binary.BigEndian.PutUint16(buf[i:i+2], c)
+		binary.BigEndian.PutUint16(buf[n:n+2], c)
 	}
 
 	str, err := DecodeUTF16(buf)
 	if err != nil {
-		panic(err)
+		return "", trace.Wrap(err)
 	}
 
-	return str
+	return str, nil
 }
 
 func (i *Host) asAbort(args []wasmer.Value) ([]wasmer.Value, error) {
@@ -144,7 +149,29 @@ func (i *Host) asAbort(args []wasmer.Value) ([]wasmer.Value, error) {
 }
 
 func (i *Host) asTrace(args []wasmer.Value) ([]wasmer.Value, error) {
-	i.log.Info(i.asGetString(args[0]))
+	s, err := i.asGetString(args[0])
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+
+	if len(args) > 1 {
+		var params []string
+
+		l := int(args[1].I32())
+		if len(args)-2 < l {
+			l = len(args) - 2
+		}
+
+		params = make([]string, l)
+
+		for n := 0; n < l; n++ {
+			params[n] = fmt.Sprintf("%v", args[n+2].F64())
+		}
+
+		s = s + " " + strings.Join(params, ", ")
+	}
+
+	i.log.Info(s)
 
 	return []wasmer.Value{}, nil
 }
