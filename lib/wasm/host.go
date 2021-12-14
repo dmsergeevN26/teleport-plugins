@@ -103,9 +103,7 @@ func DecodeUTF16(b []byte) (string, error) {
 	}
 
 	u16s := make([]uint16, 1)
-
 	ret := &bytes.Buffer{}
-
 	b8buf := make([]byte, 4)
 
 	lb := len(b)
@@ -121,9 +119,17 @@ func DecodeUTF16(b []byte) (string, error) {
 
 func (i *Host) asGetString(s wasmer.Value) string {
 	addr := s.I32()
-	len := binary.LittleEndian.Uint32(i.memory.Data()[addr-4 : addr])
-	segment := i.memory.Data()[addr : addr+int32(len)]
-	str, err := DecodeUTF16(segment)
+	data := i.memory.Data()
+	len := int32(binary.LittleEndian.Uint32(data[addr-4 : addr]))
+	buf := make([]byte, len)
+
+	for i := 0; i < int(len); i += 1 {
+		pos := addr + int32(i*2)
+		c := binary.LittleEndian.Uint16(data[pos : pos+2])
+		binary.BigEndian.PutUint16(buf[i*2:], c)
+	}
+
+	str, err := DecodeUTF16(buf)
 	if err != nil {
 		panic(err)
 	}
