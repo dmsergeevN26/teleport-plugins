@@ -123,10 +123,10 @@ func (i *Host) asGetString(s wasmer.Value) string {
 	len := int32(binary.LittleEndian.Uint32(data[addr-4 : addr]))
 	buf := make([]byte, len)
 
-	for i := 0; i < int(len); i += 1 {
-		pos := addr + int32(i*2)
-		c := binary.LittleEndian.Uint16(data[pos : pos+2])
-		binary.BigEndian.PutUint16(buf[i*2:], c)
+	for i := 0; i < int(len); i += 2 {
+		pos := addr + int32(i)
+		c := binary.BigEndian.Uint16(data[pos : pos+2])
+		binary.BigEndian.PutUint16(buf[i:i+2], c)
 	}
 
 	str, err := DecodeUTF16(buf)
