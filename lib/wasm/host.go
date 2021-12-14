@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"strings"
 	"unicode/utf16"
-	"unicode/utf8"
 
 	"github.com/gravitational/trace"
 	log "github.com/sirupsen/logrus"
@@ -97,27 +96,8 @@ func NewHost(options Options) (*Host, error) {
 	}, nil
 }
 
-func DecodeUTF16(b []byte) (string, error) {
-
-	if len(b)%2 != 0 {
-		return "", fmt.Errorf("Must have even length byte slice")
-	}
-
-	u16s := make([]uint16, 1)
-	ret := &bytes.Buffer{}
-	b8buf := make([]byte, 4)
-
-	lb := len(b)
-	for i := 0; i < lb; i += 2 {
-		u16s[0] = uint16(b[i]) + (uint16(b[i+1]) << 8)
-		r := utf16.Decode(u16s)
-		n := utf8.EncodeRune(b8buf, r[0])
-		ret.Write(b8buf[:n])
-	}
-
-	return ret.String(), nil
-}
-
+// asGetString reads and returns AssemblyScript string by it's memory address. It assumes that
+// a string has the standard AS GC header.
 func (i *Host) asGetString(s wasmer.Value) (string, error) {
 	addr := s.I32()
 	if addr == 0 {
@@ -126,28 +106,31 @@ func (i *Host) asGetString(s wasmer.Value) (string, error) {
 
 	data := i.memory.Data()
 	len := int32(binary.LittleEndian.Uint32(data[addr-4 : addr]))
-	buf := make([]byte, len)
 
+	// Copy UTF16 string to a buffer
+	utf16buf := make([]uint16, len/2)
 	for n := 0; n < int(len); n += 2 {
 		pos := addr + int32(n)
-		c := binary.BigEndian.Uint16(data[pos : pos+2])
-		binary.BigEndian.PutUint16(buf[n:n+2], c)
+		utf16buf[n/2] = binary.LittleEndian.Uint16(data[pos : pos+2])
 	}
 
-	str, err := DecodeUTF16(buf)
-	if err != nil {
-		return "", trace.Wrap(err)
+	// Convert UTF16 to UTF8
+	stringBuf := &bytes.Buffer{}
+	for _, r := range utf16.Decode(utf16buf) {
+		stringBuf.WriteRune(r)
 	}
 
-	return str, nil
+	return stringBuf.String(), nil
 }
 
+// asAbort AssemblyScript abort() function
 func (i *Host) asAbort(args []wasmer.Value) ([]wasmer.Value, error) {
 	i.log.Error(i.asGetString(args[0]))
 
 	return []wasmer.Value{}, nil
 }
 
+// asAbort AssemblyScript trace() function
 func (i *Host) asTrace(args []wasmer.Value) ([]wasmer.Value, error) {
 	s, err := i.asGetString(args[0])
 	if err != nil {
@@ -176,6 +159,7 @@ func (i *Host) asTrace(args []wasmer.Value) ([]wasmer.Value, error) {
 	return []wasmer.Value{}, nil
 }
 
+// LoadPlugin loads plugin from a wasm file and ensures that all exports required exports are present
 func (i *Host) LoadPlugin(b []byte) error {
 	var err error
 
