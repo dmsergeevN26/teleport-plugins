@@ -20,7 +20,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	b, err := os.ReadFile("plugin.wasm")
+	b, err := os.ReadFile("build/development.wasm")
 	if err != nil {
 		log.Fatal(err)
 	}
