@@ -1,0 +1,25 @@
+{
+    "targets": {
+      "development": {
+        "binaryFile": "build/development.wasm",
+        "textFile": "build/development.wat",
+        "tsdFile": "build/development.d.ts",
+        "sourceMap": true,
+        "exportRuntime": true,
+        "debug": true,
+        "memoryBase": "0x100000"
+      },
+      "production": {
+        "binaryFile": "build/production.wasm",
+        "textFile": "build/production.wat",
+        "sourceMap": true,
+        "optimizeLevel": 3,
+        "shrinkLevel": 0,
+        "converge": false,
+        "noAssert": true,
+        "exportRuntime": true,
+        "memoryBase": "0x100000"
+      }
+    },
+    "options": {}
+  }

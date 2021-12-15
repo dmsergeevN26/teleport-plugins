@@ -98,10 +98,10 @@ func NewHost(options Options) (*Host, error) {
 
 // asGetString reads and returns AssemblyScript string by it's memory address. It assumes that
 // a string has the standard AS GC header.
-func (i *Host) asGetString(s wasmer.Value) (string, error) {
+func (i *Host) asGetString(s wasmer.Value) string {
 	addr := s.I32()
 	if addr == 0 {
-		return "", nil
+		return ""
 	}
 
 	data := i.memory.Data()
@@ -120,22 +120,25 @@ func (i *Host) asGetString(s wasmer.Value) (string, error) {
 		stringBuf.WriteRune(r)
 	}
 
-	return stringBuf.String(), nil
+	return stringBuf.String()
 }
 
 // asAbort AssemblyScript abort() function
 func (i *Host) asAbort(args []wasmer.Value) ([]wasmer.Value, error) {
-	i.log.Error(i.asGetString(args[0]))
+	i.log.Error(fmt.Sprintf(
+		"Wasmer: abort! %v (%v:%v:%v)",
+		i.asGetString(args[0]),
+		i.asGetString(args[1]),
+		args[2].I32(),
+		args[3].I32(),
+	))
 
 	return []wasmer.Value{}, nil
 }
 
 // asAbort AssemblyScript trace() function
 func (i *Host) asTrace(args []wasmer.Value) ([]wasmer.Value, error) {
-	s, err := i.asGetString(args[0])
-	if err != nil {
-		return nil, trace.Wrap(err)
-	}
+	s := i.asGetString(args[0])
 
 	if len(args) > 1 {
 		var params []string
