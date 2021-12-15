@@ -36,8 +36,12 @@ function hideEvent(event: Event): Event | null {
 
     // Hide secret-santa logins
     if (event.UserLogin != null) {
-        if (event.UserLogin.User != null) {
-            if (event.UserLogin.User.Login == "secret-santa") {
+        const userLogin = event.UserLogin as events.UserLogin
+
+        if (userLogin.User != null) {
+            const user = userLogin.User as events.UserMetadata
+
+            if (user.Login == "secret-santa") {
                 return null;
             }
         }

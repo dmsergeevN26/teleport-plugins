@@ -1,4 +1,4 @@
-import { events, google } from './teleport';
+import { events } from './teleport';
 import uuid from "as-uuid";
 
 export function genEventMetadata(type: string): events.Metadata {
