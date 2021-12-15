@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"strings"
+	"time"
 	"unicode/utf16"
 
 	"github.com/gravitational/trace"
@@ -45,6 +46,14 @@ var (
 			wasmer.ValueKind(wasmer.F64), // a4?:f64
 		),
 		wasmer.NewValueTypes(), // void
+	)
+
+	// Seed function
+	asSeed = wasmer.NewFunctionType(
+		wasmer.NewValueTypes(),
+		wasmer.NewValueTypes(
+			wasmer.ValueKind(wasmer.F64),
+		),
 	)
 )
 
@@ -162,6 +171,11 @@ func (i *Host) asTrace(args []wasmer.Value) ([]wasmer.Value, error) {
 	return []wasmer.Value{}, nil
 }
 
+// asSeed implements random seed function
+func (i *Host) asSeed(args []wasmer.Value) ([]wasmer.Value, error) {
+	return []wasmer.Value{wasmer.NewF64(float64(time.Now().UnixNano()))}, nil
+}
+
 // LoadPlugin loads plugin from a wasm file and ensures that all exports required exports are present
 func (i *Host) LoadPlugin(b []byte) error {
 	var err error
@@ -175,6 +189,7 @@ func (i *Host) LoadPlugin(b []byte) error {
 	i.importObject.Register("env", map[string]wasmer.IntoExtern{
 		"abort": wasmer.NewFunction(i.store, asAbortSignature, i.asAbort),
 		"trace": wasmer.NewFunction(i.store, asTraceSignature, i.asTrace),
+		"seed":  wasmer.NewFunction(i.store, asSeed, i.asSeed),
 	})
 
 	i.instance, err = wasmer.NewInstance(i.module, i.importObject)
@@ -194,8 +209,14 @@ func (i *Host) LoadPlugin(b []byte) error {
 		return trace.Wrap(err)
 	}
 
-	fn, _ := i.instance.Exports.GetFunction("testTrace")
-	fn()
+	return nil
+}
 
+func (i *Host) Test() error {
+	fn, err := i.instance.Exports.GetFunction("test")
+	if err != nil {
+		return trace.Wrap(err)
+	}
+	fn()
 	return nil
 }

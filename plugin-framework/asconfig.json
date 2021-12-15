@@ -19,6 +19,15 @@
         "noAssert": true,
         "exportRuntime": true,
         "memoryBase": "0x100000"
+      },
+      "test": {
+        "binaryFile": "build/test.wasm",
+        "textFile": "build/test.wat",
+        "tsdFile": "build/test.d.ts",
+        "sourceMap": true,
+        "exportRuntime": true,
+        "debug": true,
+        "memoryBase": "0x100000"
       }
     },
     "options": {}

@@ -20,12 +20,17 @@ func main() {
 		log.Fatal(err)
 	}
 
-	b, err := os.ReadFile("build/development.wasm")
+	b, err := os.ReadFile("build/test.wasm")
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	err = host.LoadPlugin(b)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = host.Test()
 	if err != nil {
 		log.Fatal(err)
 	}
