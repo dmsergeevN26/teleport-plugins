@@ -20,6 +20,7 @@ function testSkipPrintEvent():void {
     event.SessionPrint = printEvent;
 
     const encoded = event.encode()
+    // -> protobuf-as:encodeAsDataView(), that would be used in tests only
     const data = new DataView(new ArrayBuffer(encoded.length));
     for (let i:i32 = 0; i < data.byteLength; i++) {
         data.setUint8(i, encoded.at(i))
