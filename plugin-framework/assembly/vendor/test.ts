@@ -1,0 +1,1 @@
+export declare function getFixture(n: i32): DataView;

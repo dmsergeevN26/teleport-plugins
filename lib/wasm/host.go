@@ -8,6 +8,7 @@ import (
 	"time"
 	"unicode/utf16"
 
+	"github.com/gogo/protobuf/proto"
 	"github.com/gravitational/trace"
 	log "github.com/sirupsen/logrus"
 	wasmer "github.com/wasmerio/wasmer-go/wasmer"
@@ -48,12 +49,18 @@ var (
 		wasmer.NewValueTypes(), // void
 	)
 
-	// Seed function
+	// seed()
 	asSeed = wasmer.NewFunctionType(
 		wasmer.NewValueTypes(),
 		wasmer.NewValueTypes(
 			wasmer.ValueKind(wasmer.F64),
 		),
+	)
+
+	// getFixture()
+	getFixtureSignature = wasmer.NewFunctionType(
+		wasmer.NewValueTypes(wasmer.ValueKind(wasmer.I32)), // n:i32
+		wasmer.NewValueTypes(wasmer.ValueKind(wasmer.I32)), // usize
 	)
 )
 
@@ -66,11 +73,15 @@ type Host struct {
 	memory       *wasmer.Memory
 	interopFns   map[string]wasmer.NativeFunction
 	log          log.FieldLogger
+	test         bool
+	fixtureIndex *FixtureIndex
 }
 
 type Options struct {
-	Compiler string
-	Logger   log.FieldLogger
+	Compiler   string
+	Logger     log.FieldLogger
+	Test       bool
+	FixtureDir string
 }
 
 func (o Options) AsConfig() (*wasmer.Config, error) {
@@ -97,11 +108,22 @@ func NewHost(options Options) (*Host, error) {
 	engine := wasmer.NewEngineWithConfig(config)
 	store := wasmer.NewStore(engine)
 
+	var fixtureIndex *FixtureIndex
+
+	if options.Test {
+		fixtureIndex, err = NewFixtureIndex(options.FixtureDir)
+		if err != nil {
+			return nil, trace.Wrap(err)
+		}
+	}
+
 	return &Host{
-		engine:     engine,
-		store:      store,
-		log:        options.Logger,
-		interopFns: make(map[string]wasmer.NativeFunction),
+		engine:       engine,
+		store:        store,
+		log:          options.Logger,
+		test:         options.Test,
+		interopFns:   make(map[string]wasmer.NativeFunction),
+		fixtureIndex: fixtureIndex,
 	}, nil
 }
 
@@ -176,6 +198,42 @@ func (i *Host) asSeed(args []wasmer.Value) ([]wasmer.Value, error) {
 	return []wasmer.Value{wasmer.NewF64(float64(time.Now().UnixNano()))}, nil
 }
 
+// getFixture returns fixture number n
+func (i *Host) getFixture(args []wasmer.Value) ([]wasmer.Value, error) {
+	n := int(args[0].I32())
+
+	fixture := i.fixtureIndex.Get(n)
+	if fixture == nil {
+		return []wasmer.Value{wasmer.NewI32(0)}, trace.Errorf("Fixture %v not found", n)
+	}
+
+	return i.sendProtoMessage(fixture)
+}
+
+// TODO: make fn names constants
+// sendProtoMessage sends proto.Message to the AS side
+func (i *Host) sendProtoMessage(message proto.Message) ([]wasmer.Value, error) {
+	size := proto.Size(message)
+	bytes, err := proto.Marshal(message)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+
+	handler, err := i.interopFns["__protobuf_alloc"](size)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+
+	for n := 0; n < size; n++ {
+		_, err := i.interopFns["__protobuf_setu8"](handler, n, bytes[n])
+		if err != nil {
+			return nil, trace.Wrap(err)
+		}
+	}
+
+	return []wasmer.Value{wasmer.NewI32(handler)}, nil
+}
+
 // LoadPlugin loads plugin from a wasm file and ensures that all exports required exports are present
 func (i *Host) LoadPlugin(b []byte) error {
 	var err error
@@ -191,6 +249,12 @@ func (i *Host) LoadPlugin(b []byte) error {
 		"trace": wasmer.NewFunction(i.store, asTraceSignature, i.asTrace),
 		"seed":  wasmer.NewFunction(i.store, asSeed, i.asSeed),
 	})
+
+	if i.test {
+		i.importObject.Register("test", map[string]wasmer.IntoExtern{
+			"getFixture": wasmer.NewFunction(i.store, getFixtureSignature, i.getFixture),
+		})
+	}
 
 	i.instance, err = wasmer.NewInstance(i.module, i.importObject)
 	if err != nil {
@@ -217,6 +281,11 @@ func (i *Host) Test() error {
 	if err != nil {
 		return trace.Wrap(err)
 	}
-	fn()
+
+	_, err = fn()
+	if err != nil {
+		return trace.Wrap(err)
+	}
+
 	return nil
 }

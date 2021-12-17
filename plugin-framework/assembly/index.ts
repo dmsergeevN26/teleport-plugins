@@ -47,6 +47,16 @@ function hideEvent(event: Event): Event | null {
         }
     }
 
+    if (event.UserCreate != null) {
+        const userCreate = event.UserCreate as events.UserCreate
+
+        if (userCreate.User != null) {
+            const user = userCreate.User as events.UserMetadata
+
+            trace(user.Login)
+        }
+    }
+
     return event;
 }
 
