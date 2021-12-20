@@ -1,4 +1,5 @@
 import { events } from './vendor/teleport';
+import { google } from './vendor/teleport';
 export { __protobuf_alloc, __protobuf_free, __protobuf_getAddr, __protobuf_getLength, __protobuf_setu8 } from './vendor/teleport';
 
 type Event = events.OneOf;
@@ -28,32 +29,12 @@ export function handleEvent(eventData: DataView): Array<u8> | null {
     return event.encode();
 }
 
+// Hides secret-santa user logins
 function hideEvent(event: Event): Event | null {
-    // Hide session print event
-    if (event.SessionPrint != null) {
-        return null;
-    }
-
-    // Hide secret-santa logins
     if (event.UserLogin != null) {
         const userLogin = event.UserLogin as events.UserLogin
-
-        if (userLogin.User != null) {
-            const user = userLogin.User as events.UserMetadata
-
-            if (user.Login == "secret-santa") {
-                return null;
-            }
-        }
-    }
-
-    if (event.UserCreate != null) {
-        const userCreate = event.UserCreate as events.UserCreate
-
-        if (userCreate.User != null) {
-            const user = userCreate.User as events.UserMetadata
-
-            trace(user.Login)
+        if (userLogin.User.Login == "secret-santa") {
+            return null;
         }
     }
 
@@ -61,9 +42,18 @@ function hideEvent(event: Event): Event | null {
 }
 
 function addRequiredLabels(event: Event): Event | null {
-    return null;
+    if (event.AccessRequestCreate != null) {
+        const request = event.AccessRequestCreate as events.AccessRequestCreate;
+
+        const value = new google.protobuf.Value()
+        value.string_value = "yes"
+
+        request.Annotations.fields.set("seen-by-us", value)
+    }
+
+    return event;
 }
 
 function createLockBasedOnEvent(event: Event): Event | null {
-    return null;
+    return event;
 }

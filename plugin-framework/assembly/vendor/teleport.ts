@@ -484,7 +484,6 @@ namespace __proto {
  */
 export function __protobuf_alloc(length: i32): DataView {
     const data = new DataView(new ArrayBuffer(length));
-    __pin(changetype<usize>(data));
     return data;
 }
 
@@ -502,7 +501,7 @@ export function __protobuf_setu8(data: DataView, offset: i32, value: u8): void {
  * @param addr Segment addr
  */
 export function __protobuf_free(data: DataView): void {
-    __unpin(changetype<usize>(data));
+    // no-op, __unpin possibly?
 }
 
 /**
@@ -565,8 +564,12 @@ export namespace google {
             public size(): u32 {
                 let size: u32 = 0;
 
-                size += 1 + __proto.Sizer.int64(this.seconds);
-                size += 1 + __proto.Sizer.int32(this.nanos);
+                size +=
+                    this.seconds == 0
+                        ? 0
+                        : 1 + __proto.Sizer.int64(this.seconds);
+                size +=
+                    this.nanos == 0 ? 0 : 1 + __proto.Sizer.int32(this.nanos);
 
                 return size;
             }
@@ -577,10 +580,14 @@ export namespace google {
             ): Array<u8> {
                 const buf = encoder.buf;
 
-                encoder.uint32(0x8);
-                encoder.int64(this.seconds);
-                encoder.uint32(0x10);
-                encoder.int32(this.nanos);
+                if (this.seconds != 0) {
+                    encoder.uint32(0x8);
+                    encoder.int64(this.seconds);
+                }
+                if (this.nanos != 0) {
+                    encoder.uint32(0x10);
+                    encoder.int32(this.nanos);
+                }
 
                 return buf;
             } // encode Timestamp
@@ -771,15 +778,18 @@ export namespace google {
             public size(): u32 {
                 let size: u32 = 0;
 
-                size += 1 + __proto.Sizer.uint32(this.null_value);
-                size += 1 + 8;
+                size +=
+                    this.null_value == 0
+                        ? 0
+                        : 1 + __proto.Sizer.uint32(this.null_value);
+                size += this.number_value == 0 ? 0 : 1 + 8;
                 size +=
                     this.string_value.length > 0
                         ? 1 +
                           __proto.Sizer.varint64(this.string_value.length) +
                           this.string_value.length
                         : 0;
-                size += 1 + 1;
+                size += this.bool_value == 0 ? 0 : 1 + 1;
 
                 if (this.struct_value != null) {
                     const f: google.protobuf.Struct = this
@@ -816,17 +826,23 @@ export namespace google {
             ): Array<u8> {
                 const buf = encoder.buf;
 
-                encoder.uint32(0x8);
-                encoder.uint32(this.null_value);
-                encoder.uint32(0x11);
-                encoder.double(this.number_value);
+                if (this.null_value != 0) {
+                    encoder.uint32(0x8);
+                    encoder.uint32(this.null_value);
+                }
+                if (this.number_value != 0) {
+                    encoder.uint32(0x11);
+                    encoder.double(this.number_value);
+                }
                 if (this.string_value.length > 0) {
                     encoder.uint32(0x1a);
                     encoder.uint32(this.string_value.length);
                     encoder.string(this.string_value);
                 }
-                encoder.uint32(0x20);
-                encoder.bool(this.bool_value);
+                if (this.bool_value != 0) {
+                    encoder.uint32(0x20);
+                    encoder.bool(this.bool_value);
+                }
 
                 if (this.struct_value != null) {
                     const f = this.struct_value as google.protobuf.Struct;
@@ -1123,7 +1139,8 @@ export namespace types {
         public Name: string = "";
         public Namespace: string = "";
         public LeaseID: i64;
-        public Expires: google.protobuf.Timestamp | null;
+        public Expires: google.protobuf.Timestamp =
+            new google.protobuf.Timestamp();
         public Type: u32;
         public HostID: string = "";
 
@@ -1199,7 +1216,8 @@ export namespace types {
                       __proto.Sizer.varint64(this.Namespace.length) +
                       this.Namespace.length
                     : 0;
-            size += 1 + __proto.Sizer.int64(this.LeaseID);
+            size +=
+                this.LeaseID == 0 ? 0 : 1 + __proto.Sizer.int64(this.LeaseID);
 
             if (this.Expires != null) {
                 const f: google.protobuf.Timestamp = this
@@ -1212,7 +1230,7 @@ export namespace types {
                 }
             }
 
-            size += 1 + __proto.Sizer.uint32(this.Type);
+            size += this.Type == 0 ? 0 : 1 + __proto.Sizer.uint32(this.Type);
             size +=
                 this.HostID.length > 0
                     ? 1 +
@@ -1239,8 +1257,10 @@ export namespace types {
                 encoder.uint32(this.Namespace.length);
                 encoder.string(this.Namespace);
             }
-            encoder.uint32(0x18);
-            encoder.int64(this.LeaseID);
+            if (this.LeaseID != 0) {
+                encoder.uint32(0x18);
+                encoder.int64(this.LeaseID);
+            }
 
             if (this.Expires != null) {
                 const f = this.Expires as google.protobuf.Timestamp;
@@ -1254,8 +1274,10 @@ export namespace types {
                 }
             }
 
-            encoder.uint32(0x48);
-            encoder.uint32(this.Type);
+            if (this.Type != 0) {
+                encoder.uint32(0x48);
+                encoder.uint32(this.Type);
+            }
             if (this.HostID.length > 0) {
                 encoder.uint32(0x52);
                 encoder.uint32(this.HostID.length);
@@ -1278,7 +1300,8 @@ export namespace types {
         public Namespace: string = "";
         public Description: string = "";
         public Labels: Map<string, string> = new Map<string, string>();
-        public Expires: google.protobuf.Timestamp | null;
+        public Expires: google.protobuf.Timestamp =
+            new google.protobuf.Timestamp();
         public ID: i64;
 
         // Decodes Metadata from an ArrayBuffer
@@ -1387,7 +1410,7 @@ export namespace types {
                 }
             }
 
-            size += 1 + __proto.Sizer.int64(this.ID);
+            size += this.ID == 0 ? 0 : 1 + __proto.Sizer.int64(this.ID);
 
             return size;
         }
@@ -1449,8 +1472,10 @@ export namespace types {
                 }
             }
 
-            encoder.uint32(0x38);
-            encoder.int64(this.ID);
+            if (this.ID != 0) {
+                encoder.uint32(0x38);
+                encoder.int64(this.ID);
+            }
 
             return buf;
         } // encode Metadata
@@ -1461,10 +1486,12 @@ export namespace types {
         public Phase: string = "";
         public Mode: string = "";
         public CurrentID: string = "";
-        public Started: google.protobuf.Timestamp | null;
+        public Started: google.protobuf.Timestamp =
+            new google.protobuf.Timestamp();
         public GracePeriod: i64;
-        public LastRotated: google.protobuf.Timestamp | null;
-        public Schedule: types.RotationSchedule | null;
+        public LastRotated: google.protobuf.Timestamp =
+            new google.protobuf.Timestamp();
+        public Schedule: types.RotationSchedule = new types.RotationSchedule();
 
         // Decodes Rotation from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): Rotation {
@@ -1588,7 +1615,10 @@ export namespace types {
                 }
             }
 
-            size += 1 + __proto.Sizer.int64(this.GracePeriod);
+            size +=
+                this.GracePeriod == 0
+                    ? 0
+                    : 1 + __proto.Sizer.int64(this.GracePeriod);
 
             if (this.LastRotated != null) {
                 const f: google.protobuf.Timestamp = this
@@ -1654,8 +1684,10 @@ export namespace types {
                 }
             }
 
-            encoder.uint32(0x30);
-            encoder.int64(this.GracePeriod);
+            if (this.GracePeriod != 0) {
+                encoder.uint32(0x30);
+                encoder.int64(this.GracePeriod);
+            }
 
             if (this.LastRotated != null) {
                 const f = this.LastRotated as google.protobuf.Timestamp;
@@ -1686,9 +1718,12 @@ export namespace types {
     } // Rotation
 
     export class RotationSchedule {
-        public UpdateClients: google.protobuf.Timestamp | null;
-        public UpdateServers: google.protobuf.Timestamp | null;
-        public Standby: google.protobuf.Timestamp | null;
+        public UpdateClients: google.protobuf.Timestamp =
+            new google.protobuf.Timestamp();
+        public UpdateServers: google.protobuf.Timestamp =
+            new google.protobuf.Timestamp();
+        public Standby: google.protobuf.Timestamp =
+            new google.protobuf.Timestamp();
 
         // Decodes RotationSchedule from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): RotationSchedule {
@@ -1842,7 +1877,7 @@ export namespace types {
         public Kind: string = "";
         public SubKind: string = "";
         public Version: string = "";
-        public Metadata: types.Metadata | null;
+        public Metadata: types.Metadata = new types.Metadata();
 
         // Decodes ResourceHeader from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): ResourceHeader {
@@ -1970,8 +2005,9 @@ export namespace types {
         public Kind: string = "";
         public SubKind: string = "";
         public Version: string = "";
-        public Metadata: types.Metadata | null;
-        public Spec: types.DatabaseServerSpecV3 | null;
+        public Metadata: types.Metadata = new types.Metadata();
+        public Spec: types.DatabaseServerSpecV3 =
+            new types.DatabaseServerSpecV3();
 
         // Decodes DatabaseServerV3 from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): DatabaseServerV3 {
@@ -2136,7 +2172,7 @@ export namespace types {
         public Protocol: string = "";
         public URI: string = "";
         public CACert: Array<u8> = new Array<u8>();
-        public AWS: types.AWS | null;
+        public AWS: types.AWS = new types.AWS();
         public Version: string = "";
         public Hostname: string = "";
         public HostID: string = "";
@@ -2144,9 +2180,9 @@ export namespace types {
             string,
             types.CommandLabelV2
         >();
-        public Rotation: types.Rotation | null;
-        public GCP: types.GCPCloudSQL | null;
-        public Database: types.DatabaseV3 | null;
+        public Rotation: types.Rotation = new types.Rotation();
+        public GCP: types.GCPCloudSQL = new types.GCPCloudSQL();
+        public Database: types.DatabaseV3 = new types.DatabaseV3();
 
         // Decodes DatabaseServerSpecV3 from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): DatabaseServerSpecV3 {
@@ -2575,9 +2611,9 @@ export namespace types {
         public Kind: string = "";
         public SubKind: string = "";
         public Version: string = "";
-        public Metadata: types.Metadata | null;
-        public Spec: types.DatabaseSpecV3 | null;
-        public Status: types.DatabaseStatusV3 | null;
+        public Metadata: types.Metadata = new types.Metadata();
+        public Spec: types.DatabaseSpecV3 = new types.DatabaseSpecV3();
+        public Status: types.DatabaseStatusV3 = new types.DatabaseStatusV3();
 
         // Decodes DatabaseV3 from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): DatabaseV3 {
@@ -2781,8 +2817,8 @@ export namespace types {
             string,
             types.CommandLabelV2
         >();
-        public AWS: types.AWS | null;
-        public GCP: types.GCPCloudSQL | null;
+        public AWS: types.AWS = new types.AWS();
+        public GCP: types.GCPCloudSQL = new types.GCPCloudSQL();
 
         // Decodes DatabaseSpecV3 from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): DatabaseSpecV3 {
@@ -2999,7 +3035,7 @@ export namespace types {
 
     export class DatabaseStatusV3 {
         public CACert: string = "";
-        public AWS: types.AWS | null;
+        public AWS: types.AWS = new types.AWS();
 
         // Decodes DatabaseStatusV3 from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): DatabaseStatusV3 {
@@ -3095,8 +3131,8 @@ export namespace types {
 
     export class AWS {
         public Region: string = "";
-        public Redshift: types.Redshift | null;
-        public RDS: types.RDS | null;
+        public Redshift: types.Redshift = new types.Redshift();
+        public RDS: types.RDS = new types.RDS();
         public AccountID: string = "";
 
         // Decodes AWS from an ArrayBuffer
@@ -3370,7 +3406,7 @@ export namespace types {
                       __proto.Sizer.varint64(this.ResourceID.length) +
                       this.ResourceID.length
                     : 0;
-            size += 1 + 1;
+            size += this.IAMAuth == 0 ? 0 : 1 + 1;
 
             return size;
         }
@@ -3396,8 +3432,10 @@ export namespace types {
                 encoder.uint32(this.ResourceID.length);
                 encoder.string(this.ResourceID);
             }
-            encoder.uint32(0x20);
-            encoder.bool(this.IAMAuth);
+            if (this.IAMAuth != 0) {
+                encoder.uint32(0x20);
+                encoder.bool(this.IAMAuth);
+            }
 
             return buf;
         } // encode RDS
@@ -3483,8 +3521,8 @@ export namespace types {
         public Kind: string = "";
         public SubKind: string = "";
         public Version: string = "";
-        public Metadata: types.Metadata | null;
-        public Spec: types.ServerSpecV2 | null;
+        public Metadata: types.Metadata = new types.Metadata();
+        public Spec: types.ServerSpecV2 = new types.ServerSpecV2();
 
         // Decodes ServerV2 from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): ServerV2 {
@@ -3728,7 +3766,7 @@ export namespace types {
             string,
             types.CommandLabelV2
         >();
-        public Rotation: types.Rotation | null;
+        public Rotation: types.Rotation = new types.Rotation();
         public UseTunnel: bool;
         public Version: string = "";
         public Apps: Array<types.App> = new Array<types.App>();
@@ -3881,7 +3919,7 @@ export namespace types {
                 }
             }
 
-            size += 1 + 1;
+            size += this.UseTunnel == 0 ? 0 : 1 + 1;
             size +=
                 this.Version.length > 0
                     ? 1 +
@@ -3973,8 +4011,10 @@ export namespace types {
                 }
             }
 
-            encoder.uint32(0x30);
-            encoder.bool(this.UseTunnel);
+            if (this.UseTunnel != 0) {
+                encoder.uint32(0x30);
+                encoder.bool(this.UseTunnel);
+            }
             if (this.Version.length > 0) {
                 encoder.uint32(0x3a);
                 encoder.uint32(this.Version.length);
@@ -4009,8 +4049,8 @@ export namespace types {
         public Kind: string = "";
         public SubKind: string = "";
         public Version: string = "";
-        public Metadata: types.Metadata | null;
-        public Spec: types.AppServerSpecV3 | null;
+        public Metadata: types.Metadata = new types.Metadata();
+        public Spec: types.AppServerSpecV3 = new types.AppServerSpecV3();
 
         // Decodes AppServerV3 from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): AppServerV3 {
@@ -4174,8 +4214,8 @@ export namespace types {
         public Version: string = "";
         public Hostname: string = "";
         public HostID: string = "";
-        public Rotation: types.Rotation | null;
-        public App: types.AppV3 | null;
+        public Rotation: types.Rotation = new types.Rotation();
+        public App: types.AppV3 = new types.AppV3();
 
         // Decodes AppServerSpecV3 from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): AppServerSpecV3 {
@@ -4415,8 +4455,8 @@ export namespace types {
         public Kind: string = "";
         public SubKind: string = "";
         public Version: string = "";
-        public Metadata: types.Metadata | null;
-        public Spec: types.AppSpecV3 | null;
+        public Metadata: types.Metadata = new types.Metadata();
+        public Spec: types.AppSpecV3 = new types.AppSpecV3();
 
         // Decodes AppV3 from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): AppV3 {
@@ -4583,7 +4623,7 @@ export namespace types {
             types.CommandLabelV2
         >();
         public InsecureSkipVerify: bool;
-        public Rewrite: types.Rewrite | null;
+        public Rewrite: types.Rewrite = new types.Rewrite();
 
         // Decodes AppSpecV3 from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): AppSpecV3 {
@@ -4677,7 +4717,7 @@ export namespace types {
                 }
             }
 
-            size += 1 + 1;
+            size += this.InsecureSkipVerify == 0 ? 0 : 1 + 1;
 
             if (this.Rewrite != null) {
                 const f: types.Rewrite = this.Rewrite as types.Rewrite;
@@ -4738,8 +4778,10 @@ export namespace types {
                 }
             }
 
-            encoder.uint32(0x20);
-            encoder.bool(this.InsecureSkipVerify);
+            if (this.InsecureSkipVerify != 0) {
+                encoder.uint32(0x20);
+                encoder.bool(this.InsecureSkipVerify);
+            }
 
             if (this.Rewrite != null) {
                 const f = this.Rewrite as types.Rewrite;
@@ -4767,7 +4809,7 @@ export namespace types {
             types.CommandLabelV2
         >();
         public InsecureSkipVerify: bool;
-        public Rewrite: types.Rewrite | null;
+        public Rewrite: types.Rewrite = new types.Rewrite();
         public Description: string = "";
 
         // Decodes App from an ArrayBuffer
@@ -4900,7 +4942,7 @@ export namespace types {
                 }
             }
 
-            size += 1 + 1;
+            size += this.InsecureSkipVerify == 0 ? 0 : 1 + 1;
 
             if (this.Rewrite != null) {
                 const f: types.Rewrite = this.Rewrite as types.Rewrite;
@@ -4996,8 +5038,10 @@ export namespace types {
                 }
             }
 
-            encoder.uint32(0x30);
-            encoder.bool(this.InsecureSkipVerify);
+            if (this.InsecureSkipVerify != 0) {
+                encoder.uint32(0x30);
+                encoder.bool(this.InsecureSkipVerify);
+            }
 
             if (this.Rewrite != null) {
                 const f = this.Rewrite as types.Rewrite;
@@ -5233,7 +5277,7 @@ export namespace types {
         public size(): u32 {
             let size: u32 = 0;
 
-            size += 1 + __proto.Sizer.int64(this.Period);
+            size += this.Period == 0 ? 0 : 1 + __proto.Sizer.int64(this.Period);
 
             size += __size_string_repeated(this.Command);
 
@@ -5253,8 +5297,10 @@ export namespace types {
         ): Array<u8> {
             const buf = encoder.buf;
 
-            encoder.uint32(0x8);
-            encoder.int64(this.Period);
+            if (this.Period != 0) {
+                encoder.uint32(0x8);
+                encoder.int64(this.Period);
+            }
 
             if (this.Command.length > 0) {
                 for (let n: i32 = 0; n < this.Command.length; n++) {
@@ -5330,7 +5376,10 @@ export namespace types {
                       __proto.Sizer.varint64(this.PrivateKey.length) +
                       this.PrivateKey.length
                     : 0;
-            size += 1 + __proto.Sizer.uint32(this.PrivateKeyType);
+            size +=
+                this.PrivateKeyType == 0
+                    ? 0
+                    : 1 + __proto.Sizer.uint32(this.PrivateKeyType);
 
             return size;
         }
@@ -5351,8 +5400,10 @@ export namespace types {
                 encoder.uint32(this.PrivateKey.length);
                 encoder.bytes(this.PrivateKey);
             }
-            encoder.uint32(0x18);
-            encoder.uint32(this.PrivateKeyType);
+            if (this.PrivateKeyType != 0) {
+                encoder.uint32(0x18);
+                encoder.uint32(this.PrivateKeyType);
+            }
 
             return buf;
         } // encode SSHKeyPair
@@ -5414,7 +5465,8 @@ export namespace types {
                       __proto.Sizer.varint64(this.Key.length) +
                       this.Key.length
                     : 0;
-            size += 1 + __proto.Sizer.uint32(this.KeyType);
+            size +=
+                this.KeyType == 0 ? 0 : 1 + __proto.Sizer.uint32(this.KeyType);
 
             return size;
         }
@@ -5435,8 +5487,10 @@ export namespace types {
                 encoder.uint32(this.Key.length);
                 encoder.bytes(this.Key);
             }
-            encoder.uint32(0x18);
-            encoder.uint32(this.KeyType);
+            if (this.KeyType != 0) {
+                encoder.uint32(0x18);
+                encoder.uint32(this.KeyType);
+            }
 
             return buf;
         } // encode TLSKeyPair
@@ -5498,7 +5552,10 @@ export namespace types {
                       __proto.Sizer.varint64(this.PrivateKey.length) +
                       this.PrivateKey.length
                     : 0;
-            size += 1 + __proto.Sizer.uint32(this.PrivateKeyType);
+            size +=
+                this.PrivateKeyType == 0
+                    ? 0
+                    : 1 + __proto.Sizer.uint32(this.PrivateKeyType);
 
             return size;
         }
@@ -5519,8 +5576,10 @@ export namespace types {
                 encoder.uint32(this.PrivateKey.length);
                 encoder.bytes(this.PrivateKey);
             }
-            encoder.uint32(0x18);
-            encoder.uint32(this.PrivateKeyType);
+            if (this.PrivateKeyType != 0) {
+                encoder.uint32(0x18);
+                encoder.uint32(this.PrivateKeyType);
+            }
 
             return buf;
         } // encode JWTKeyPair
@@ -5530,8 +5589,9 @@ export namespace types {
         public Kind: string = "";
         public SubKind: string = "";
         public Version: string = "";
-        public Metadata: types.Metadata | null;
-        public Spec: types.CertAuthoritySpecV2 | null;
+        public Metadata: types.Metadata = new types.Metadata();
+        public Spec: types.CertAuthoritySpecV2 =
+            new types.CertAuthoritySpecV2();
 
         // Decodes CertAuthorityV2 from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): CertAuthorityV2 {
@@ -5701,12 +5761,12 @@ export namespace types {
             new Array<types.RoleMapping>();
         public TLSKeyPairs: Array<types.TLSKeyPair> =
             new Array<types.TLSKeyPair>();
-        public Rotation: types.Rotation | null;
+        public Rotation: types.Rotation = new types.Rotation();
         public SigningAlg: u32;
         public JWTKeyPairs: Array<types.JWTKeyPair> =
             new Array<types.JWTKeyPair>();
-        public ActiveKeys: types.CAKeySet | null;
-        public AdditionalTrustedKeys: types.CAKeySet | null;
+        public ActiveKeys: types.CAKeySet = new types.CAKeySet();
+        public AdditionalTrustedKeys: types.CAKeySet = new types.CAKeySet();
 
         // Decodes CertAuthoritySpecV2 from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): CertAuthoritySpecV2 {
@@ -5890,7 +5950,10 @@ export namespace types {
                 }
             }
 
-            size += 1 + __proto.Sizer.uint32(this.SigningAlg);
+            size +=
+                this.SigningAlg == 0
+                    ? 0
+                    : 1 + __proto.Sizer.uint32(this.SigningAlg);
 
             for (let n: i32 = 0; n < this.JWTKeyPairs.length; n++) {
                 const messageSize = this.JWTKeyPairs[n].size();
@@ -5998,8 +6061,10 @@ export namespace types {
                 }
             }
 
-            encoder.uint32(0x48);
-            encoder.uint32(this.SigningAlg);
+            if (this.SigningAlg != 0) {
+                encoder.uint32(0x48);
+                encoder.uint32(this.SigningAlg);
+            }
 
             for (let n: i32 = 0; n < this.JWTKeyPairs.length; n++) {
                 const messageSize = this.JWTKeyPairs[n].size();
@@ -6269,7 +6334,8 @@ export namespace types {
 
     export class ProvisionTokenV1 {
         public Roles: Array<string> = new Array<string>();
-        public Expires: google.protobuf.Timestamp | null;
+        public Expires: google.protobuf.Timestamp =
+            new google.protobuf.Timestamp();
         public Token: string = "";
 
         // Decodes ProvisionTokenV1 from an ArrayBuffer
@@ -6383,8 +6449,9 @@ export namespace types {
         public Kind: string = "";
         public SubKind: string = "";
         public Version: string = "";
-        public Metadata: types.Metadata | null;
-        public Spec: types.ProvisionTokenSpecV2 | null;
+        public Metadata: types.Metadata = new types.Metadata();
+        public Spec: types.ProvisionTokenSpecV2 =
+            new types.ProvisionTokenSpecV2();
 
         // Decodes ProvisionTokenV2 from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): ProvisionTokenV2 {
@@ -6781,7 +6848,10 @@ export namespace types {
                 }
             }
 
-            size += 1 + __proto.Sizer.int64(this.AWSIIDTTL);
+            size +=
+                this.AWSIIDTTL == 0
+                    ? 0
+                    : 1 + __proto.Sizer.int64(this.AWSIIDTTL);
 
             return size;
         }
@@ -6810,8 +6880,10 @@ export namespace types {
                 }
             }
 
-            encoder.uint32(0x18);
-            encoder.int64(this.AWSIIDTTL);
+            if (this.AWSIIDTTL != 0) {
+                encoder.uint32(0x18);
+                encoder.int64(this.AWSIIDTTL);
+            }
 
             return buf;
         } // encode ProvisionTokenSpecV2
@@ -6821,8 +6893,8 @@ export namespace types {
         public Kind: string = "";
         public SubKind: string = "";
         public Version: string = "";
-        public Metadata: types.Metadata | null;
-        public Spec: types.StaticTokensSpecV2 | null;
+        public Metadata: types.Metadata = new types.Metadata();
+        public Spec: types.StaticTokensSpecV2 = new types.StaticTokensSpecV2();
 
         // Decodes StaticTokensV2 from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): StaticTokensV2 {
@@ -7064,8 +7136,8 @@ export namespace types {
         public Kind: string = "";
         public SubKind: string = "";
         public Version: string = "";
-        public Metadata: types.Metadata | null;
-        public Spec: types.ClusterNameSpecV2 | null;
+        public Metadata: types.Metadata = new types.Metadata();
+        public Spec: types.ClusterNameSpecV2 = new types.ClusterNameSpecV2();
 
         // Decodes ClusterNameV2 from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): ClusterNameV2 {
@@ -7305,8 +7377,9 @@ export namespace types {
         public Kind: string = "";
         public SubKind: string = "";
         public Version: string = "";
-        public Metadata: types.Metadata | null;
-        public Spec: types.ClusterAuditConfigSpecV2 | null;
+        public Metadata: types.Metadata = new types.Metadata();
+        public Spec: types.ClusterAuditConfigSpecV2 =
+            new types.ClusterAuditConfigSpecV2();
 
         // Decodes ClusterAuditConfigV2 from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): ClusterAuditConfigV2 {
@@ -7470,7 +7543,8 @@ export namespace types {
         public Type: string = "";
         public Region: string = "";
         public AuditSessionsURI: string = "";
-        public AuditEventsURI: wrappers.StringValues | null;
+        public AuditEventsURI: wrappers.StringValues =
+            new wrappers.StringValues();
         public EnableContinuousBackups: bool;
         public EnableAutoScaling: bool;
         public ReadMaxCapacity: i64;
@@ -7594,14 +7668,26 @@ export namespace types {
                 }
             }
 
-            size += 1 + 1;
-            size += 1 + 1;
-            size += 1 + __proto.Sizer.int64(this.ReadMaxCapacity);
-            size += 1 + __proto.Sizer.int64(this.ReadMinCapacity);
-            size += 1 + 8;
-            size += 1 + __proto.Sizer.int64(this.WriteMaxCapacity);
-            size += 1 + __proto.Sizer.int64(this.WriteMinCapacity);
-            size += 1 + 8;
+            size += this.EnableContinuousBackups == 0 ? 0 : 1 + 1;
+            size += this.EnableAutoScaling == 0 ? 0 : 1 + 1;
+            size +=
+                this.ReadMaxCapacity == 0
+                    ? 0
+                    : 1 + __proto.Sizer.int64(this.ReadMaxCapacity);
+            size +=
+                this.ReadMinCapacity == 0
+                    ? 0
+                    : 1 + __proto.Sizer.int64(this.ReadMinCapacity);
+            size += this.ReadTargetValue == 0 ? 0 : 1 + 8;
+            size +=
+                this.WriteMaxCapacity == 0
+                    ? 0
+                    : 1 + __proto.Sizer.int64(this.WriteMaxCapacity);
+            size +=
+                this.WriteMinCapacity == 0
+                    ? 0
+                    : 1 + __proto.Sizer.int64(this.WriteMinCapacity);
+            size += this.WriteTargetValue == 0 ? 0 : 1 + 8;
 
             return size;
         }
@@ -7640,22 +7726,38 @@ export namespace types {
                 }
             }
 
-            encoder.uint32(0x30);
-            encoder.bool(this.EnableContinuousBackups);
-            encoder.uint32(0x38);
-            encoder.bool(this.EnableAutoScaling);
-            encoder.uint32(0x40);
-            encoder.int64(this.ReadMaxCapacity);
-            encoder.uint32(0x48);
-            encoder.int64(this.ReadMinCapacity);
-            encoder.uint32(0x51);
-            encoder.double(this.ReadTargetValue);
-            encoder.uint32(0x58);
-            encoder.int64(this.WriteMaxCapacity);
-            encoder.uint32(0x60);
-            encoder.int64(this.WriteMinCapacity);
-            encoder.uint32(0x69);
-            encoder.double(this.WriteTargetValue);
+            if (this.EnableContinuousBackups != 0) {
+                encoder.uint32(0x30);
+                encoder.bool(this.EnableContinuousBackups);
+            }
+            if (this.EnableAutoScaling != 0) {
+                encoder.uint32(0x38);
+                encoder.bool(this.EnableAutoScaling);
+            }
+            if (this.ReadMaxCapacity != 0) {
+                encoder.uint32(0x40);
+                encoder.int64(this.ReadMaxCapacity);
+            }
+            if (this.ReadMinCapacity != 0) {
+                encoder.uint32(0x48);
+                encoder.int64(this.ReadMinCapacity);
+            }
+            if (this.ReadTargetValue != 0) {
+                encoder.uint32(0x51);
+                encoder.double(this.ReadTargetValue);
+            }
+            if (this.WriteMaxCapacity != 0) {
+                encoder.uint32(0x58);
+                encoder.int64(this.WriteMaxCapacity);
+            }
+            if (this.WriteMinCapacity != 0) {
+                encoder.uint32(0x60);
+                encoder.int64(this.WriteMinCapacity);
+            }
+            if (this.WriteTargetValue != 0) {
+                encoder.uint32(0x69);
+                encoder.double(this.WriteTargetValue);
+            }
 
             return buf;
         } // encode ClusterAuditConfigSpecV2
@@ -7665,8 +7767,9 @@ export namespace types {
         public Kind: string = "";
         public SubKind: string = "";
         public Version: string = "";
-        public Metadata: types.Metadata | null;
-        public Spec: types.ClusterNetworkingConfigSpecV2 | null;
+        public Metadata: types.Metadata = new types.Metadata();
+        public Spec: types.ClusterNetworkingConfigSpecV2 =
+            new types.ClusterNetworkingConfigSpecV2();
 
         // Decodes ClusterNetworkingConfigV2 from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): ClusterNetworkingConfigV2 {
@@ -7897,10 +8000,22 @@ export namespace types {
         public size(): u32 {
             let size: u32 = 0;
 
-            size += 1 + __proto.Sizer.int64(this.ClientIdleTimeout);
-            size += 1 + __proto.Sizer.int64(this.KeepAliveInterval);
-            size += 1 + __proto.Sizer.int64(this.KeepAliveCountMax);
-            size += 1 + __proto.Sizer.int64(this.SessionControlTimeout);
+            size +=
+                this.ClientIdleTimeout == 0
+                    ? 0
+                    : 1 + __proto.Sizer.int64(this.ClientIdleTimeout);
+            size +=
+                this.KeepAliveInterval == 0
+                    ? 0
+                    : 1 + __proto.Sizer.int64(this.KeepAliveInterval);
+            size +=
+                this.KeepAliveCountMax == 0
+                    ? 0
+                    : 1 + __proto.Sizer.int64(this.KeepAliveCountMax);
+            size +=
+                this.SessionControlTimeout == 0
+                    ? 0
+                    : 1 + __proto.Sizer.int64(this.SessionControlTimeout);
             size +=
                 this.ClientIdleTimeoutMessage.length > 0
                     ? 1 +
@@ -7909,9 +8024,18 @@ export namespace types {
                       ) +
                       this.ClientIdleTimeoutMessage.length
                     : 0;
-            size += 1 + __proto.Sizer.int64(this.WebIdleTimeout);
-            size += 1 + __proto.Sizer.uint32(this.ProxyListenerMode);
-            size += 1 + __proto.Sizer.uint32(this.RoutingStrategy);
+            size +=
+                this.WebIdleTimeout == 0
+                    ? 0
+                    : 1 + __proto.Sizer.int64(this.WebIdleTimeout);
+            size +=
+                this.ProxyListenerMode == 0
+                    ? 0
+                    : 1 + __proto.Sizer.uint32(this.ProxyListenerMode);
+            size +=
+                this.RoutingStrategy == 0
+                    ? 0
+                    : 1 + __proto.Sizer.uint32(this.RoutingStrategy);
 
             return size;
         }
@@ -7922,25 +8046,39 @@ export namespace types {
         ): Array<u8> {
             const buf = encoder.buf;
 
-            encoder.uint32(0x8);
-            encoder.int64(this.ClientIdleTimeout);
-            encoder.uint32(0x10);
-            encoder.int64(this.KeepAliveInterval);
-            encoder.uint32(0x18);
-            encoder.int64(this.KeepAliveCountMax);
-            encoder.uint32(0x20);
-            encoder.int64(this.SessionControlTimeout);
+            if (this.ClientIdleTimeout != 0) {
+                encoder.uint32(0x8);
+                encoder.int64(this.ClientIdleTimeout);
+            }
+            if (this.KeepAliveInterval != 0) {
+                encoder.uint32(0x10);
+                encoder.int64(this.KeepAliveInterval);
+            }
+            if (this.KeepAliveCountMax != 0) {
+                encoder.uint32(0x18);
+                encoder.int64(this.KeepAliveCountMax);
+            }
+            if (this.SessionControlTimeout != 0) {
+                encoder.uint32(0x20);
+                encoder.int64(this.SessionControlTimeout);
+            }
             if (this.ClientIdleTimeoutMessage.length > 0) {
                 encoder.uint32(0x2a);
                 encoder.uint32(this.ClientIdleTimeoutMessage.length);
                 encoder.string(this.ClientIdleTimeoutMessage);
             }
-            encoder.uint32(0x30);
-            encoder.int64(this.WebIdleTimeout);
-            encoder.uint32(0x38);
-            encoder.uint32(this.ProxyListenerMode);
-            encoder.uint32(0x40);
-            encoder.uint32(this.RoutingStrategy);
+            if (this.WebIdleTimeout != 0) {
+                encoder.uint32(0x30);
+                encoder.int64(this.WebIdleTimeout);
+            }
+            if (this.ProxyListenerMode != 0) {
+                encoder.uint32(0x38);
+                encoder.uint32(this.ProxyListenerMode);
+            }
+            if (this.RoutingStrategy != 0) {
+                encoder.uint32(0x40);
+                encoder.uint32(this.RoutingStrategy);
+            }
 
             return buf;
         } // encode ClusterNetworkingConfigSpecV2
@@ -7950,8 +8088,9 @@ export namespace types {
         public Kind: string = "";
         public SubKind: string = "";
         public Version: string = "";
-        public Metadata: types.Metadata | null;
-        public Spec: types.SessionRecordingConfigSpecV2 | null;
+        public Metadata: types.Metadata = new types.Metadata();
+        public Spec: types.SessionRecordingConfigSpecV2 =
+            new types.SessionRecordingConfigSpecV2();
 
         // Decodes SessionRecordingConfigV2 from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): SessionRecordingConfigV2 {
@@ -8113,7 +8252,7 @@ export namespace types {
 
     export class SessionRecordingConfigSpecV2 {
         public Mode: string = "";
-        public ProxyChecksHostKeys: types.BoolValue | null;
+        public ProxyChecksHostKeys: types.BoolValue = new types.BoolValue();
 
         // Decodes SessionRecordingConfigSpecV2 from an ArrayBuffer
         static decodeArrayBuffer(
@@ -8214,8 +8353,9 @@ export namespace types {
         public Kind: string = "";
         public SubKind: string = "";
         public Version: string = "";
-        public Metadata: types.Metadata | null;
-        public Spec: types.AuthPreferenceSpecV2 | null;
+        public Metadata: types.Metadata = new types.Metadata();
+        public Spec: types.AuthPreferenceSpecV2 =
+            new types.AuthPreferenceSpecV2();
 
         // Decodes AuthPreferenceV2 from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): AuthPreferenceV2 {
@@ -8379,13 +8519,13 @@ export namespace types {
         public Type: string = "";
         public SecondFactor: string = "";
         public ConnectorName: string = "";
-        public U2F: types.U2F | null;
+        public U2F: types.U2F = new types.U2F();
         public RequireSessionMFA: bool;
-        public DisconnectExpiredCert: types.BoolValue | null;
-        public AllowLocalAuth: types.BoolValue | null;
+        public DisconnectExpiredCert: types.BoolValue = new types.BoolValue();
+        public AllowLocalAuth: types.BoolValue = new types.BoolValue();
         public MessageOfTheDay: string = "";
         public LockingMode: string = "";
-        public Webauthn: types.Webauthn | null;
+        public Webauthn: types.Webauthn = new types.Webauthn();
 
         // Decodes AuthPreferenceSpecV2 from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): AuthPreferenceSpecV2 {
@@ -8519,7 +8659,7 @@ export namespace types {
                 }
             }
 
-            size += 1 + 1;
+            size += this.RequireSessionMFA == 0 ? 0 : 1 + 1;
 
             if (this.DisconnectExpiredCert != null) {
                 const f: types.BoolValue = this
@@ -8603,8 +8743,10 @@ export namespace types {
                 }
             }
 
-            encoder.uint32(0x28);
-            encoder.bool(this.RequireSessionMFA);
+            if (this.RequireSessionMFA != 0) {
+                encoder.uint32(0x28);
+                encoder.bool(this.RequireSessionMFA);
+            }
 
             if (this.DisconnectExpiredCert != null) {
                 const f = this.DisconnectExpiredCert as types.BoolValue;
@@ -8811,7 +8953,7 @@ export namespace types {
 
             size += __size_string_repeated(this.AttestationDeniedCAs);
 
-            size += 1 + 1;
+            size += this.Disabled == 0 ? 0 : 1 + 1;
 
             return size;
         }
@@ -8852,8 +8994,10 @@ export namespace types {
                 }
             }
 
-            encoder.uint32(0x20);
-            encoder.bool(this.Disabled);
+            if (this.Disabled != 0) {
+                encoder.uint32(0x20);
+                encoder.bool(this.Disabled);
+            }
 
             return buf;
         } // encode Webauthn
@@ -8863,8 +9007,8 @@ export namespace types {
         public Kind: string = "";
         public SubKind: string = "";
         public Version: string = "";
-        public Metadata: types.Metadata | null;
-        public Spec: types.NamespaceSpec | null;
+        public Metadata: types.Metadata = new types.Metadata();
+        public Spec: types.NamespaceSpec = new types.NamespaceSpec();
 
         // Decodes Namespace from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): Namespace {
@@ -9067,8 +9211,8 @@ export namespace types {
         public Kind: string = "";
         public SubKind: string = "";
         public Version: string = "";
-        public Metadata: types.Metadata | null;
-        public Spec: types.UserTokenSpecV3 | null;
+        public Metadata: types.Metadata = new types.Metadata();
+        public Spec: types.UserTokenSpecV3 = new types.UserTokenSpecV3();
 
         // Decodes UserTokenV3 from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): UserTokenV3 {
@@ -9232,7 +9376,8 @@ export namespace types {
         public User: string = "";
         public URL: string = "";
         public Usage: u32;
-        public Created: google.protobuf.Timestamp | null;
+        public Created: google.protobuf.Timestamp =
+            new google.protobuf.Timestamp();
 
         // Decodes UserTokenSpecV3 from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): UserTokenSpecV3 {
@@ -9298,7 +9443,7 @@ export namespace types {
                       __proto.Sizer.varint64(this.URL.length) +
                       this.URL.length
                     : 0;
-            size += 1 + __proto.Sizer.uint32(this.Usage);
+            size += this.Usage == 0 ? 0 : 1 + __proto.Sizer.uint32(this.Usage);
 
             if (this.Created != null) {
                 const f: google.protobuf.Timestamp = this
@@ -9330,8 +9475,10 @@ export namespace types {
                 encoder.uint32(this.URL.length);
                 encoder.string(this.URL);
             }
-            encoder.uint32(0x18);
-            encoder.uint32(this.Usage);
+            if (this.Usage != 0) {
+                encoder.uint32(0x18);
+                encoder.uint32(this.Usage);
+            }
 
             if (this.Created != null) {
                 const f = this.Created as google.protobuf.Timestamp;
@@ -9353,8 +9500,9 @@ export namespace types {
         public Kind: string = "";
         public SubKind: string = "";
         public Version: string = "";
-        public Metadata: types.Metadata | null;
-        public Spec: types.UserTokenSecretsSpecV3 | null;
+        public Metadata: types.Metadata = new types.Metadata();
+        public Spec: types.UserTokenSecretsSpecV3 =
+            new types.UserTokenSecretsSpecV3();
 
         // Decodes UserTokenSecretsV3 from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): UserTokenSecretsV3 {
@@ -9517,7 +9665,8 @@ export namespace types {
     export class UserTokenSecretsSpecV3 {
         public OTPKey: string = "";
         public QRCode: string = "";
-        public Created: google.protobuf.Timestamp | null;
+        public Created: google.protobuf.Timestamp =
+            new google.protobuf.Timestamp();
 
         // Decodes UserTokenSecretsSpecV3 from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): UserTokenSecretsSpecV3 {
@@ -9631,8 +9780,9 @@ export namespace types {
         public Kind: string = "";
         public SubKind: string = "";
         public Version: string = "";
-        public Metadata: types.Metadata | null;
-        public Spec: types.AccessRequestSpecV3 | null;
+        public Metadata: types.Metadata = new types.Metadata();
+        public Spec: types.AccessRequestSpecV3 =
+            new types.AccessRequestSpecV3();
 
         // Decodes AccessRequestV3 from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): AccessRequestV3 {
@@ -9853,8 +10003,9 @@ export namespace types {
                       __proto.Sizer.varint64(this.Filter.length) +
                       this.Filter.length
                     : 0;
-            size += 1 + __proto.Sizer.uint32(this.Approve);
-            size += 1 + __proto.Sizer.uint32(this.Deny);
+            size +=
+                this.Approve == 0 ? 0 : 1 + __proto.Sizer.uint32(this.Approve);
+            size += this.Deny == 0 ? 0 : 1 + __proto.Sizer.uint32(this.Deny);
 
             return size;
         }
@@ -9875,10 +10026,14 @@ export namespace types {
                 encoder.uint32(this.Filter.length);
                 encoder.string(this.Filter);
             }
-            encoder.uint32(0x18);
-            encoder.uint32(this.Approve);
-            encoder.uint32(0x20);
-            encoder.uint32(this.Deny);
+            if (this.Approve != 0) {
+                encoder.uint32(0x18);
+                encoder.uint32(this.Approve);
+            }
+            if (this.Deny != 0) {
+                encoder.uint32(0x20);
+                encoder.uint32(this.Deny);
+            }
 
             return buf;
         } // encode AccessReviewThreshold
@@ -9889,8 +10044,9 @@ export namespace types {
         public Roles: Array<string> = new Array<string>();
         public ProposedState: u32;
         public Reason: string = "";
-        public Created: google.protobuf.Timestamp | null;
-        public Annotations: wrappers.LabelValues | null;
+        public Created: google.protobuf.Timestamp =
+            new google.protobuf.Timestamp();
+        public Annotations: wrappers.LabelValues = new wrappers.LabelValues();
         public ThresholdIndexes: Array<u32> = new Array<u32>();
 
         // Decodes AccessReview from an ArrayBuffer
@@ -9975,7 +10131,10 @@ export namespace types {
 
             size += __size_string_repeated(this.Roles);
 
-            size += 1 + __proto.Sizer.uint32(this.ProposedState);
+            size +=
+                this.ProposedState == 0
+                    ? 0
+                    : 1 + __proto.Sizer.uint32(this.ProposedState);
             size +=
                 this.Reason.length > 0
                     ? 1 +
@@ -10030,8 +10189,10 @@ export namespace types {
                 }
             }
 
-            encoder.uint32(0x18);
-            encoder.uint32(this.ProposedState);
+            if (this.ProposedState != 0) {
+                encoder.uint32(0x18);
+                encoder.uint32(this.ProposedState);
+            }
             if (this.Reason.length > 0) {
                 encoder.uint32(0x22);
                 encoder.uint32(this.Reason.length);
@@ -10075,7 +10236,7 @@ export namespace types {
 
     export class AccessReviewSubmission {
         public RequestID: string = "";
-        public Review: types.AccessReview | null;
+        public Review: types.AccessReview = new types.AccessReview();
 
         // Decodes AccessReviewSubmission from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): AccessReviewSubmission {
@@ -10307,12 +10468,16 @@ export namespace types {
         public User: string = "";
         public Roles: Array<string> = new Array<string>();
         public State: u32;
-        public Created: google.protobuf.Timestamp | null;
-        public Expires: google.protobuf.Timestamp | null;
+        public Created: google.protobuf.Timestamp =
+            new google.protobuf.Timestamp();
+        public Expires: google.protobuf.Timestamp =
+            new google.protobuf.Timestamp();
         public RequestReason: string = "";
         public ResolveReason: string = "";
-        public ResolveAnnotations: wrappers.LabelValues | null;
-        public SystemAnnotations: wrappers.LabelValues | null;
+        public ResolveAnnotations: wrappers.LabelValues =
+            new wrappers.LabelValues();
+        public SystemAnnotations: wrappers.LabelValues =
+            new wrappers.LabelValues();
         public Thresholds: Array<types.AccessReviewThreshold> =
             new Array<types.AccessReviewThreshold>();
         public RoleThresholdMapping: Map<string, types.ThresholdIndexSets> =
@@ -10474,7 +10639,7 @@ export namespace types {
 
             size += __size_string_repeated(this.Roles);
 
-            size += 1 + __proto.Sizer.uint32(this.State);
+            size += this.State == 0 ? 0 : 1 + __proto.Sizer.uint32(this.State);
 
             if (this.Created != null) {
                 const f: google.protobuf.Timestamp = this
@@ -10593,8 +10758,10 @@ export namespace types {
                 }
             }
 
-            encoder.uint32(0x18);
-            encoder.uint32(this.State);
+            if (this.State != 0) {
+                encoder.uint32(0x18);
+                encoder.uint32(this.State);
+            }
 
             if (this.Created != null) {
                 const f = this.Created as google.protobuf.Timestamp;
@@ -10772,7 +10939,7 @@ export namespace types {
                       __proto.Sizer.varint64(this.User.length) +
                       this.User.length
                     : 0;
-            size += 1 + __proto.Sizer.uint32(this.State);
+            size += this.State == 0 ? 0 : 1 + __proto.Sizer.uint32(this.State);
 
             return size;
         }
@@ -10793,8 +10960,10 @@ export namespace types {
                 encoder.uint32(this.User.length);
                 encoder.string(this.User);
             }
-            encoder.uint32(0x18);
-            encoder.uint32(this.State);
+            if (this.State != 0) {
+                encoder.uint32(0x18);
+                encoder.uint32(this.State);
+            }
 
             return buf;
         } // encode AccessRequestFilter
@@ -10922,8 +11091,8 @@ export namespace types {
                       __proto.Sizer.varint64(this.User.length) +
                       this.User.length
                     : 0;
-            size += 1 + 1;
-            size += 1 + 1;
+            size += this.RequestableRoles == 0 ? 0 : 1 + 1;
+            size += this.SuggestedReviewers == 0 ? 0 : 1 + 1;
 
             return size;
         }
@@ -10939,10 +11108,14 @@ export namespace types {
                 encoder.uint32(this.User.length);
                 encoder.string(this.User);
             }
-            encoder.uint32(0x10);
-            encoder.bool(this.RequestableRoles);
-            encoder.uint32(0x18);
-            encoder.bool(this.SuggestedReviewers);
+            if (this.RequestableRoles != 0) {
+                encoder.uint32(0x10);
+                encoder.bool(this.RequestableRoles);
+            }
+            if (this.SuggestedReviewers != 0) {
+                encoder.uint32(0x18);
+                encoder.bool(this.SuggestedReviewers);
+            }
 
             return buf;
         } // encode AccessCapabilitiesRequest
@@ -10952,8 +11125,8 @@ export namespace types {
         public Kind: string = "";
         public SubKind: string = "";
         public Version: string = "";
-        public Metadata: types.Metadata | null;
-        public Spec: types.PluginDataSpecV3 | null;
+        public Metadata: types.Metadata = new types.Metadata();
+        public Spec: types.PluginDataSpecV3 = new types.PluginDataSpecV3();
 
         // Decodes PluginDataV3 from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): PluginDataV3 {
@@ -11575,8 +11748,8 @@ export namespace types {
         public Kind: string = "";
         public SubKind: string = "";
         public Version: string = "";
-        public Metadata: types.Metadata | null;
-        public Spec: types.RoleSpecV4 | null;
+        public Metadata: types.Metadata = new types.Metadata();
+        public Spec: types.RoleSpecV4 = new types.RoleSpecV4();
 
         // Decodes RoleV4 from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): RoleV4 {
@@ -11736,9 +11909,9 @@ export namespace types {
     } // RoleV4
 
     export class RoleSpecV4 {
-        public Options: types.RoleOptions | null;
-        public Allow: types.RoleConditions | null;
-        public Deny: types.RoleConditions | null;
+        public Options: types.RoleOptions = new types.RoleOptions();
+        public Allow: types.RoleConditions = new types.RoleConditions();
+        public Deny: types.RoleConditions = new types.RoleConditions();
 
         // Decodes RoleSpecV4 from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): RoleSpecV4 {
@@ -11890,7 +12063,7 @@ export namespace types {
     export class RoleOptions {
         public ForwardAgent: bool;
         public MaxSessionTTL: i64;
-        public PortForwarding: types.BoolValue | null;
+        public PortForwarding: types.BoolValue = new types.BoolValue();
         public CertificateFormat: string = "";
         public ClientIdleTimeout: i64;
         public DisconnectExpiredCert: bool;
@@ -11995,8 +12168,11 @@ export namespace types {
         public size(): u32 {
             let size: u32 = 0;
 
-            size += 1 + 1;
-            size += 1 + __proto.Sizer.int64(this.MaxSessionTTL);
+            size += this.ForwardAgent == 0 ? 0 : 1 + 1;
+            size +=
+                this.MaxSessionTTL == 0
+                    ? 0
+                    : 1 + __proto.Sizer.int64(this.MaxSessionTTL);
 
             if (this.PortForwarding != null) {
                 const f: types.BoolValue = this
@@ -12015,14 +12191,23 @@ export namespace types {
                       __proto.Sizer.varint64(this.CertificateFormat.length) +
                       this.CertificateFormat.length
                     : 0;
-            size += 1 + __proto.Sizer.int64(this.ClientIdleTimeout);
-            size += 1 + 1;
+            size +=
+                this.ClientIdleTimeout == 0
+                    ? 0
+                    : 1 + __proto.Sizer.int64(this.ClientIdleTimeout);
+            size += this.DisconnectExpiredCert == 0 ? 0 : 1 + 1;
 
             size += __size_string_repeated(this.BPF);
 
-            size += 1 + 1;
-            size += 1 + __proto.Sizer.int64(this.MaxConnections);
-            size += 1 + __proto.Sizer.int64(this.MaxSessions);
+            size += this.PermitX11Forwarding == 0 ? 0 : 1 + 1;
+            size +=
+                this.MaxConnections == 0
+                    ? 0
+                    : 1 + __proto.Sizer.int64(this.MaxConnections);
+            size +=
+                this.MaxSessions == 0
+                    ? 0
+                    : 1 + __proto.Sizer.int64(this.MaxSessions);
             size +=
                 this.RequestAccess.length > 0
                     ? 1 +
@@ -12035,7 +12220,7 @@ export namespace types {
                       __proto.Sizer.varint64(this.RequestPrompt.length) +
                       this.RequestPrompt.length
                     : 0;
-            size += 1 + 1;
+            size += this.RequireSessionMFA == 0 ? 0 : 1 + 1;
             size +=
                 this.Lock.length > 0
                     ? 1 +
@@ -12052,10 +12237,14 @@ export namespace types {
         ): Array<u8> {
             const buf = encoder.buf;
 
-            encoder.uint32(0x8);
-            encoder.bool(this.ForwardAgent);
-            encoder.uint32(0x10);
-            encoder.int64(this.MaxSessionTTL);
+            if (this.ForwardAgent != 0) {
+                encoder.uint32(0x8);
+                encoder.bool(this.ForwardAgent);
+            }
+            if (this.MaxSessionTTL != 0) {
+                encoder.uint32(0x10);
+                encoder.int64(this.MaxSessionTTL);
+            }
 
             if (this.PortForwarding != null) {
                 const f = this.PortForwarding as types.BoolValue;
@@ -12074,10 +12263,14 @@ export namespace types {
                 encoder.uint32(this.CertificateFormat.length);
                 encoder.string(this.CertificateFormat);
             }
-            encoder.uint32(0x28);
-            encoder.int64(this.ClientIdleTimeout);
-            encoder.uint32(0x30);
-            encoder.bool(this.DisconnectExpiredCert);
+            if (this.ClientIdleTimeout != 0) {
+                encoder.uint32(0x28);
+                encoder.int64(this.ClientIdleTimeout);
+            }
+            if (this.DisconnectExpiredCert != 0) {
+                encoder.uint32(0x30);
+                encoder.bool(this.DisconnectExpiredCert);
+            }
 
             if (this.BPF.length > 0) {
                 for (let n: i32 = 0; n < this.BPF.length; n++) {
@@ -12087,12 +12280,18 @@ export namespace types {
                 }
             }
 
-            encoder.uint32(0x40);
-            encoder.bool(this.PermitX11Forwarding);
-            encoder.uint32(0x48);
-            encoder.int64(this.MaxConnections);
-            encoder.uint32(0x50);
-            encoder.int64(this.MaxSessions);
+            if (this.PermitX11Forwarding != 0) {
+                encoder.uint32(0x40);
+                encoder.bool(this.PermitX11Forwarding);
+            }
+            if (this.MaxConnections != 0) {
+                encoder.uint32(0x48);
+                encoder.int64(this.MaxConnections);
+            }
+            if (this.MaxSessions != 0) {
+                encoder.uint32(0x50);
+                encoder.int64(this.MaxSessions);
+            }
             if (this.RequestAccess.length > 0) {
                 encoder.uint32(0x5a);
                 encoder.uint32(this.RequestAccess.length);
@@ -12103,8 +12302,10 @@ export namespace types {
                 encoder.uint32(this.RequestPrompt.length);
                 encoder.string(this.RequestPrompt);
             }
-            encoder.uint32(0x68);
-            encoder.bool(this.RequireSessionMFA);
+            if (this.RequireSessionMFA != 0) {
+                encoder.uint32(0x68);
+                encoder.bool(this.RequireSessionMFA);
+            }
             if (this.Lock.length > 0) {
                 encoder.uint32(0x72);
                 encoder.uint32(this.Lock.length);
@@ -12118,22 +12319,28 @@ export namespace types {
     export class RoleConditions {
         public Logins: Array<string> = new Array<string>();
         public Namespaces: Array<string> = new Array<string>();
-        public NodeLabels: wrappers.LabelValues | null;
+        public NodeLabels: wrappers.LabelValues = new wrappers.LabelValues();
         public Rules: Array<types.Rule> = new Array<types.Rule>();
         public KubeGroups: Array<string> = new Array<string>();
-        public Request: types.AccessRequestConditions | null;
+        public Request: types.AccessRequestConditions =
+            new types.AccessRequestConditions();
         public KubeUsers: Array<string> = new Array<string>();
-        public AppLabels: wrappers.LabelValues | null;
-        public ClusterLabels: wrappers.LabelValues | null;
-        public KubernetesLabels: wrappers.LabelValues | null;
-        public DatabaseLabels: wrappers.LabelValues | null;
+        public AppLabels: wrappers.LabelValues = new wrappers.LabelValues();
+        public ClusterLabels: wrappers.LabelValues = new wrappers.LabelValues();
+        public KubernetesLabels: wrappers.LabelValues =
+            new wrappers.LabelValues();
+        public DatabaseLabels: wrappers.LabelValues =
+            new wrappers.LabelValues();
         public DatabaseNames: Array<string> = new Array<string>();
         public DatabaseUsers: Array<string> = new Array<string>();
-        public Impersonate: types.ImpersonateConditions | null;
-        public ReviewRequests: types.AccessReviewConditions | null;
+        public Impersonate: types.ImpersonateConditions =
+            new types.ImpersonateConditions();
+        public ReviewRequests: types.AccessReviewConditions =
+            new types.AccessReviewConditions();
         public AWSRoleARNs: Array<string> = new Array<string>();
         public WindowsDesktopLogins: Array<string> = new Array<string>();
-        public WindowsDesktopLabels: wrappers.LabelValues | null;
+        public WindowsDesktopLabels: wrappers.LabelValues =
+            new wrappers.LabelValues();
 
         // Decodes RoleConditions from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): RoleConditions {
@@ -12654,7 +12861,7 @@ export namespace types {
         public Roles: Array<string> = new Array<string>();
         public ClaimsToRoles: Array<types.ClaimMapping> =
             new Array<types.ClaimMapping>();
-        public Annotations: wrappers.LabelValues | null;
+        public Annotations: wrappers.LabelValues = new wrappers.LabelValues();
         public Thresholds: Array<types.AccessReviewThreshold> =
             new Array<types.AccessReviewThreshold>();
         public SuggestedReviewers: Array<string> = new Array<string>();
@@ -13262,7 +13469,7 @@ export namespace types {
         public size(): u32 {
             let size: u32 = 0;
 
-            size += 1 + 1;
+            size += this.Value == 0 ? 0 : 1 + 1;
 
             return size;
         }
@@ -13273,8 +13480,10 @@ export namespace types {
         ): Array<u8> {
             const buf = encoder.buf;
 
-            encoder.uint32(0x8);
-            encoder.bool(this.Value);
+            if (this.Value != 0) {
+                encoder.uint32(0x8);
+                encoder.bool(this.Value);
+            }
 
             return buf;
         } // encode BoolValue
@@ -13284,8 +13493,8 @@ export namespace types {
         public Kind: string = "";
         public SubKind: string = "";
         public Version: string = "";
-        public Metadata: types.Metadata | null;
-        public Spec: types.UserSpecV2 | null;
+        public Metadata: types.Metadata = new types.Metadata();
+        public Spec: types.UserSpecV2 = new types.UserSpecV2();
 
         // Decodes UserV2 from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): UserV2 {
@@ -13452,11 +13661,12 @@ export namespace types {
         public GithubIdentities: Array<types.ExternalIdentity> =
             new Array<types.ExternalIdentity>();
         public Roles: Array<string> = new Array<string>();
-        public Traits: wrappers.LabelValues | null;
-        public Status: types.LoginStatus | null;
-        public Expires: google.protobuf.Timestamp | null;
-        public CreatedBy: types.CreatedBy | null;
-        public LocalAuth: types.LocalAuthSecrets | null;
+        public Traits: wrappers.LabelValues = new wrappers.LabelValues();
+        public Status: types.LoginStatus = new types.LoginStatus();
+        public Expires: google.protobuf.Timestamp =
+            new google.protobuf.Timestamp();
+        public CreatedBy: types.CreatedBy = new types.CreatedBy();
+        public LocalAuth: types.LocalAuthSecrets = new types.LocalAuthSecrets();
 
         // Decodes UserSpecV2 from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): UserSpecV2 {
@@ -13871,9 +14081,12 @@ export namespace types {
     export class LoginStatus {
         public IsLocked: bool;
         public LockedMessage: string = "";
-        public LockedTime: google.protobuf.Timestamp | null;
-        public LockExpires: google.protobuf.Timestamp | null;
-        public RecoveryAttemptLockExpires: google.protobuf.Timestamp | null;
+        public LockedTime: google.protobuf.Timestamp =
+            new google.protobuf.Timestamp();
+        public LockExpires: google.protobuf.Timestamp =
+            new google.protobuf.Timestamp();
+        public RecoveryAttemptLockExpires: google.protobuf.Timestamp =
+            new google.protobuf.Timestamp();
 
         // Decodes LoginStatus from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): LoginStatus {
@@ -13950,7 +14163,7 @@ export namespace types {
         public size(): u32 {
             let size: u32 = 0;
 
-            size += 1 + 1;
+            size += this.IsLocked == 0 ? 0 : 1 + 1;
             size +=
                 this.LockedMessage.length > 0
                     ? 1 +
@@ -14000,8 +14213,10 @@ export namespace types {
         ): Array<u8> {
             const buf = encoder.buf;
 
-            encoder.uint32(0x8);
-            encoder.bool(this.IsLocked);
+            if (this.IsLocked != 0) {
+                encoder.uint32(0x8);
+                encoder.bool(this.IsLocked);
+            }
             if (this.LockedMessage.length > 0) {
                 encoder.uint32(0x12);
                 encoder.uint32(this.LockedMessage.length);
@@ -14050,9 +14265,10 @@ export namespace types {
     } // LoginStatus
 
     export class CreatedBy {
-        public Connector: types.ConnectorRef | null;
-        public Time: google.protobuf.Timestamp | null;
-        public User: types.UserRef | null;
+        public Connector: types.ConnectorRef = new types.ConnectorRef();
+        public Time: google.protobuf.Timestamp =
+            new google.protobuf.Timestamp();
+        public User: types.UserRef = new types.UserRef();
 
         // Decodes CreatedBy from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): CreatedBy {
@@ -14296,10 +14512,12 @@ export namespace types {
     export class LocalAuthSecrets {
         public PasswordHash: Array<u8> = new Array<u8>();
         public TOTPKey: string = "";
-        public U2FRegistration: types.U2FRegistrationData | null;
+        public U2FRegistration: types.U2FRegistrationData =
+            new types.U2FRegistrationData();
         public U2FCounter: u32;
         public MFA: Array<types.MFADevice> = new Array<types.MFADevice>();
-        public Webauthn: types.WebauthnLocalAuth | null;
+        public Webauthn: types.WebauthnLocalAuth =
+            new types.WebauthnLocalAuth();
 
         // Decodes LocalAuthSecrets from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): LocalAuthSecrets {
@@ -14405,7 +14623,10 @@ export namespace types {
                 }
             }
 
-            size += 1 + __proto.Sizer.uint32(this.U2FCounter);
+            size +=
+                this.U2FCounter == 0
+                    ? 0
+                    : 1 + __proto.Sizer.uint32(this.U2FCounter);
 
             for (let n: i32 = 0; n < this.MFA.length; n++) {
                 const messageSize = this.MFA[n].size();
@@ -14459,8 +14680,10 @@ export namespace types {
                 }
             }
 
-            encoder.uint32(0x20);
-            encoder.uint32(this.U2FCounter);
+            if (this.U2FCounter != 0) {
+                encoder.uint32(0x20);
+                encoder.uint32(this.U2FCounter);
+            }
 
             for (let n: i32 = 0; n < this.MFA.length; n++) {
                 const messageSize = this.MFA[n].size();
@@ -14492,10 +14715,12 @@ export namespace types {
         public kind: string = "";
         public sub_kind: string = "";
         public version: string = "";
-        public metadata: types.Metadata | null;
+        public metadata: types.Metadata = new types.Metadata();
         public id: string = "";
-        public added_at: google.protobuf.Timestamp | null;
-        public last_used: google.protobuf.Timestamp | null;
+        public added_at: google.protobuf.Timestamp =
+            new google.protobuf.Timestamp();
+        public last_used: google.protobuf.Timestamp =
+            new google.protobuf.Timestamp();
         public totp: types.TOTPDevice | null;
         public u2f: types.U2FDevice | null;
         public webauthn: types.WebauthnDevice | null;
@@ -14933,7 +15158,8 @@ export namespace types {
                       __proto.Sizer.varint64(this.pub_key.length) +
                       this.pub_key.length
                     : 0;
-            size += 1 + __proto.Sizer.uint32(this.counter);
+            size +=
+                this.counter == 0 ? 0 : 1 + __proto.Sizer.uint32(this.counter);
 
             return size;
         }
@@ -14954,8 +15180,10 @@ export namespace types {
                 encoder.uint32(this.pub_key.length);
                 encoder.bytes(this.pub_key);
             }
-            encoder.uint32(0x18);
-            encoder.uint32(this.counter);
+            if (this.counter != 0) {
+                encoder.uint32(0x18);
+                encoder.uint32(this.counter);
+            }
 
             return buf;
         } // encode U2FDevice
@@ -15039,7 +15267,10 @@ export namespace types {
                       __proto.Sizer.varint64(this.aaguid.length) +
                       this.aaguid.length
                     : 0;
-            size += 1 + __proto.Sizer.uint32(this.signature_counter);
+            size +=
+                this.signature_counter == 0
+                    ? 0
+                    : 1 + __proto.Sizer.uint32(this.signature_counter);
 
             return size;
         }
@@ -15070,8 +15301,10 @@ export namespace types {
                 encoder.uint32(this.aaguid.length);
                 encoder.bytes(this.aaguid);
             }
-            encoder.uint32(0x28);
-            encoder.uint32(this.signature_counter);
+            if (this.signature_counter != 0) {
+                encoder.uint32(0x28);
+                encoder.uint32(this.signature_counter);
+            }
 
             return buf;
         } // encode WebauthnDevice
@@ -15293,8 +15526,9 @@ export namespace types {
         public Kind: string = "";
         public SubKind: string = "";
         public Version: string = "";
-        public Metadata: types.Metadata | null;
-        public Spec: types.ReverseTunnelSpecV2 | null;
+        public Metadata: types.Metadata = new types.Metadata();
+        public Spec: types.ReverseTunnelSpecV2 =
+            new types.ReverseTunnelSpecV2();
 
         // Decodes ReverseTunnelV2 from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): ReverseTunnelV2 {
@@ -15551,8 +15785,9 @@ export namespace types {
         public Kind: string = "";
         public SubKind: string = "";
         public Version: string = "";
-        public Metadata: types.Metadata | null;
-        public Spec: types.TunnelConnectionSpecV2 | null;
+        public Metadata: types.Metadata = new types.Metadata();
+        public Spec: types.TunnelConnectionSpecV2 =
+            new types.TunnelConnectionSpecV2();
 
         // Decodes TunnelConnectionV2 from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): TunnelConnectionV2 {
@@ -15715,7 +15950,8 @@ export namespace types {
     export class TunnelConnectionSpecV2 {
         public ClusterName: string = "";
         public ProxyName: string = "";
-        public LastHeartbeat: google.protobuf.Timestamp | null;
+        public LastHeartbeat: google.protobuf.Timestamp =
+            new google.protobuf.Timestamp();
         public Type: string = "";
 
         // Decodes TunnelConnectionSpecV2 from an ArrayBuffer
@@ -15923,7 +16159,8 @@ export namespace types {
         public SemaphoreKind: string = "";
         public SemaphoreName: string = "";
         public MaxLeases: i64;
-        public Expires: google.protobuf.Timestamp | null;
+        public Expires: google.protobuf.Timestamp =
+            new google.protobuf.Timestamp();
         public Holder: string = "";
 
         // Decodes AcquireSemaphoreRequest from an ArrayBuffer
@@ -15994,7 +16231,10 @@ export namespace types {
                       __proto.Sizer.varint64(this.SemaphoreName.length) +
                       this.SemaphoreName.length
                     : 0;
-            size += 1 + __proto.Sizer.int64(this.MaxLeases);
+            size +=
+                this.MaxLeases == 0
+                    ? 0
+                    : 1 + __proto.Sizer.int64(this.MaxLeases);
 
             if (this.Expires != null) {
                 const f: google.protobuf.Timestamp = this
@@ -16033,8 +16273,10 @@ export namespace types {
                 encoder.uint32(this.SemaphoreName.length);
                 encoder.string(this.SemaphoreName);
             }
-            encoder.uint32(0x18);
-            encoder.int64(this.MaxLeases);
+            if (this.MaxLeases != 0) {
+                encoder.uint32(0x18);
+                encoder.int64(this.MaxLeases);
+            }
 
             if (this.Expires != null) {
                 const f = this.Expires as google.protobuf.Timestamp;
@@ -16062,7 +16304,8 @@ export namespace types {
         public SemaphoreKind: string = "";
         public SemaphoreName: string = "";
         public LeaseID: string = "";
-        public Expires: google.protobuf.Timestamp | null;
+        public Expires: google.protobuf.Timestamp =
+            new google.protobuf.Timestamp();
 
         // Decodes SemaphoreLease from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): SemaphoreLease {
@@ -16189,7 +16432,8 @@ export namespace types {
 
     export class SemaphoreLeaseRef {
         public LeaseID: string = "";
-        public Expires: google.protobuf.Timestamp | null;
+        public Expires: google.protobuf.Timestamp =
+            new google.protobuf.Timestamp();
         public Holder: string = "";
 
         // Decodes SemaphoreLeaseRef from an ArrayBuffer
@@ -16306,8 +16550,8 @@ export namespace types {
         public Kind: string = "";
         public SubKind: string = "";
         public Version: string = "";
-        public Metadata: types.Metadata | null;
-        public Spec: types.SemaphoreSpecV3 | null;
+        public Metadata: types.Metadata = new types.Metadata();
+        public Spec: types.SemaphoreSpecV3 = new types.SemaphoreSpecV3();
 
         // Decodes SemaphoreV3 from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): SemaphoreV3 {
@@ -16549,8 +16793,8 @@ export namespace types {
         public Kind: string = "";
         public SubKind: string = "";
         public Version: string = "";
-        public Metadata: types.Metadata | null;
-        public Spec: types.WebSessionSpecV2 | null;
+        public Metadata: types.Metadata = new types.Metadata();
+        public Spec: types.WebSessionSpecV2 = new types.WebSessionSpecV2();
 
         // Decodes WebSessionV2 from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): WebSessionV2 {
@@ -16716,9 +16960,12 @@ export namespace types {
         public Priv: Array<u8> = new Array<u8>();
         public TLSCert: Array<u8> = new Array<u8>();
         public BearerToken: string = "";
-        public BearerTokenExpires: google.protobuf.Timestamp | null;
-        public Expires: google.protobuf.Timestamp | null;
-        public LoginTime: google.protobuf.Timestamp | null;
+        public BearerTokenExpires: google.protobuf.Timestamp =
+            new google.protobuf.Timestamp();
+        public Expires: google.protobuf.Timestamp =
+            new google.protobuf.Timestamp();
+        public LoginTime: google.protobuf.Timestamp =
+            new google.protobuf.Timestamp();
         public IdleTimeout: i64;
 
         // Decodes WebSessionSpecV2 from an ArrayBuffer
@@ -16876,7 +17123,10 @@ export namespace types {
                 }
             }
 
-            size += 1 + __proto.Sizer.int64(this.IdleTimeout);
+            size +=
+                this.IdleTimeout == 0
+                    ? 0
+                    : 1 + __proto.Sizer.int64(this.IdleTimeout);
 
             return size;
         }
@@ -16949,8 +17199,10 @@ export namespace types {
                 }
             }
 
-            encoder.uint32(0x48);
-            encoder.int64(this.IdleTimeout);
+            if (this.IdleTimeout != 0) {
+                encoder.uint32(0x48);
+                encoder.int64(this.IdleTimeout);
+            }
 
             return buf;
         } // encode WebSessionSpecV2
@@ -17020,8 +17272,9 @@ export namespace types {
         public Kind: string = "";
         public SubKind: string = "";
         public Version: string = "";
-        public Metadata: types.Metadata | null;
-        public Status: types.RemoteClusterStatusV3 | null;
+        public Metadata: types.Metadata = new types.Metadata();
+        public Status: types.RemoteClusterStatusV3 =
+            new types.RemoteClusterStatusV3();
 
         // Decodes RemoteClusterV3 from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): RemoteClusterV3 {
@@ -17183,7 +17436,8 @@ export namespace types {
 
     export class RemoteClusterStatusV3 {
         public Connection: string = "";
-        public LastHeartbeat: google.protobuf.Timestamp | null;
+        public LastHeartbeat: google.protobuf.Timestamp =
+            new google.protobuf.Timestamp();
 
         // Decodes RemoteClusterStatusV3 from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): RemoteClusterStatusV3 {
@@ -17450,8 +17704,9 @@ export namespace types {
         public Kind: string = "";
         public SubKind: string = "";
         public Version: string = "";
-        public Metadata: types.Metadata | null;
-        public Spec: types.KubernetesClusterSpecV3 | null;
+        public Metadata: types.Metadata = new types.Metadata();
+        public Spec: types.KubernetesClusterSpecV3 =
+            new types.KubernetesClusterSpecV3();
 
         // Decodes KubernetesClusterV3 from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): KubernetesClusterV3 {
@@ -17717,8 +17972,8 @@ export namespace types {
         public Kind: string = "";
         public SubKind: string = "";
         public Version: string = "";
-        public Metadata: types.Metadata | null;
-        public Spec: types.WebTokenSpecV3 | null;
+        public Metadata: types.Metadata = new types.Metadata();
+        public Spec: types.WebTokenSpecV3 = new types.WebTokenSpecV3();
 
         // Decodes WebTokenV3 from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): WebTokenV3 {
@@ -18363,7 +18618,7 @@ export namespace types {
                       __proto.Sizer.varint64(this.Name.length) +
                       this.Name.length
                     : 0;
-            size += 1 + 1;
+            size += this.WithSecrets == 0 ? 0 : 1 + 1;
 
             return size;
         }
@@ -18379,8 +18634,10 @@ export namespace types {
                 encoder.uint32(this.Name.length);
                 encoder.string(this.Name);
             }
-            encoder.uint32(0x10);
-            encoder.bool(this.WithSecrets);
+            if (this.WithSecrets != 0) {
+                encoder.uint32(0x10);
+                encoder.bool(this.WithSecrets);
+            }
 
             return buf;
         } // encode ResourceWithSecretsRequest
@@ -18422,7 +18679,7 @@ export namespace types {
         public size(): u32 {
             let size: u32 = 0;
 
-            size += 1 + 1;
+            size += this.WithSecrets == 0 ? 0 : 1 + 1;
 
             return size;
         }
@@ -18433,8 +18690,10 @@ export namespace types {
         ): Array<u8> {
             const buf = encoder.buf;
 
-            encoder.uint32(0x8);
-            encoder.bool(this.WithSecrets);
+            if (this.WithSecrets != 0) {
+                encoder.uint32(0x8);
+                encoder.bool(this.WithSecrets);
+            }
 
             return buf;
         } // encode ResourcesWithSecretsRequest
@@ -18582,8 +18841,9 @@ export namespace types {
         public Kind: string = "";
         public SubKind: string = "";
         public Version: string = "";
-        public Metadata: types.Metadata | null;
-        public Spec: types.OIDCConnectorSpecV2 | null;
+        public Metadata: types.Metadata = new types.Metadata();
+        public Spec: types.OIDCConnectorSpecV2 =
+            new types.OIDCConnectorSpecV2();
 
         // Decodes OIDCConnectorV2 from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): OIDCConnectorV2 {
@@ -19102,8 +19362,9 @@ export namespace types {
         public Kind: string = "";
         public SubKind: string = "";
         public Version: string = "";
-        public Metadata: types.Metadata | null;
-        public Spec: types.SAMLConnectorSpecV2 | null;
+        public Metadata: types.Metadata = new types.Metadata();
+        public Spec: types.SAMLConnectorSpecV2 =
+            new types.SAMLConnectorSpecV2();
 
         // Decodes SAMLConnectorV2 from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): SAMLConnectorV2 {
@@ -19353,9 +19614,11 @@ export namespace types {
         public EntityDescriptorURL: string = "";
         public AttributesToRoles: Array<types.AttributeMapping> =
             new Array<types.AttributeMapping>();
-        public SigningKeyPair: types.AsymmetricKeyPair | null;
+        public SigningKeyPair: types.AsymmetricKeyPair =
+            new types.AsymmetricKeyPair();
         public Provider: string = "";
-        public EncryptionKeyPair: types.AsymmetricKeyPair | null;
+        public EncryptionKeyPair: types.AsymmetricKeyPair =
+            new types.AsymmetricKeyPair();
 
         // Decodes SAMLConnectorSpecV2 from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): SAMLConnectorSpecV2 {
@@ -19832,8 +20095,9 @@ export namespace types {
         public Kind: string = "";
         public SubKind: string = "";
         public Version: string = "";
-        public Metadata: types.Metadata | null;
-        public Spec: types.GithubConnectorSpecV3 | null;
+        public Metadata: types.Metadata = new types.Metadata();
+        public Spec: types.GithubConnectorSpecV3 =
+            new types.GithubConnectorSpecV3();
 
         // Decodes GithubConnectorV3 from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): GithubConnectorV3 {
@@ -20342,8 +20606,9 @@ export namespace types {
         public Kind: string = "";
         public SubKind: string = "";
         public Version: string = "";
-        public Metadata: types.Metadata | null;
-        public Spec: types.TrustedClusterSpecV2 | null;
+        public Metadata: types.Metadata = new types.Metadata();
+        public Spec: types.TrustedClusterSpecV2 =
+            new types.TrustedClusterSpecV2();
 
         // Decodes TrustedClusterV2 from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): TrustedClusterV2 {
@@ -20652,7 +20917,7 @@ export namespace types {
         public size(): u32 {
             let size: u32 = 0;
 
-            size += 1 + 1;
+            size += this.Enabled == 0 ? 0 : 1 + 1;
 
             size += __size_string_repeated(this.Roles);
 
@@ -20693,8 +20958,10 @@ export namespace types {
         ): Array<u8> {
             const buf = encoder.buf;
 
-            encoder.uint32(0x8);
-            encoder.bool(this.Enabled);
+            if (this.Enabled != 0) {
+                encoder.uint32(0x8);
+                encoder.bool(this.Enabled);
+            }
 
             if (this.Roles.length > 0) {
                 for (let n: i32 = 0; n < this.Roles.length; n++) {
@@ -20738,8 +21005,8 @@ export namespace types {
         public Kind: string = "";
         public SubKind: string = "";
         public Version: string = "";
-        public Metadata: types.Metadata | null;
-        public Spec: types.LockSpecV2 | null;
+        public Metadata: types.Metadata = new types.Metadata();
+        public Spec: types.LockSpecV2 = new types.LockSpecV2();
 
         // Decodes LockV2 from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): LockV2 {
@@ -20899,9 +21166,10 @@ export namespace types {
     } // LockV2
 
     export class LockSpecV2 {
-        public Target: types.LockTarget | null;
+        public Target: types.LockTarget = new types.LockTarget();
         public Message: string = "";
-        public Expires: google.protobuf.Timestamp | null;
+        public Expires: google.protobuf.Timestamp =
+            new google.protobuf.Timestamp();
 
         // Decodes LockSpecV2 from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): LockSpecV2 {
@@ -21333,8 +21601,9 @@ export namespace types {
         public Kind: string = "";
         public SubKind: string = "";
         public Version: string = "";
-        public Metadata: types.Metadata | null;
-        public Spec: types.NetworkRestrictionsSpecV4 | null;
+        public Metadata: types.Metadata = new types.Metadata();
+        public Spec: types.NetworkRestrictionsSpecV4 =
+            new types.NetworkRestrictionsSpecV4();
 
         // Decodes NetworkRestrictionsV4 from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): NetworkRestrictionsV4 {
@@ -21495,8 +21764,9 @@ export namespace types {
     } // NetworkRestrictionsV4
 
     export class WindowsDesktopServiceV3 {
-        public Header: types.ResourceHeader | null;
-        public Spec: types.WindowsDesktopServiceSpecV3 | null;
+        public Header: types.ResourceHeader = new types.ResourceHeader();
+        public Spec: types.WindowsDesktopServiceSpecV3 =
+            new types.WindowsDesktopServiceSpecV3();
 
         // Decodes WindowsDesktopServiceV3 from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): WindowsDesktopServiceV3 {
@@ -21689,8 +21959,9 @@ export namespace types {
     } // WindowsDesktopServiceSpecV3
 
     export class WindowsDesktopV3 {
-        public Header: types.ResourceHeader | null;
-        public Spec: types.WindowsDesktopSpecV3 | null;
+        public Header: types.ResourceHeader = new types.ResourceHeader();
+        public Spec: types.WindowsDesktopSpecV3 =
+            new types.WindowsDesktopSpecV3();
 
         // Decodes WindowsDesktopV3 from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): WindowsDesktopV3 {
@@ -22092,8 +22363,9 @@ export namespace types {
         public Kind: string = "";
         public SubKind: string = "";
         public Version: string = "";
-        public Metadata: types.Metadata | null;
-        public Spec: types.RecoveryCodesSpecV1 | null;
+        public Metadata: types.Metadata = new types.Metadata();
+        public Spec: types.RecoveryCodesSpecV1 =
+            new types.RecoveryCodesSpecV1();
 
         // Decodes RecoveryCodesV1 from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): RecoveryCodesV1 {
@@ -22256,7 +22528,8 @@ export namespace types {
     export class RecoveryCodesSpecV1 {
         public Codes: Array<types.RecoveryCode> =
             new Array<types.RecoveryCode>();
-        public Created: google.protobuf.Timestamp | null;
+        public Created: google.protobuf.Timestamp =
+            new google.protobuf.Timestamp();
 
         // Decodes RecoveryCodesSpecV1 from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): RecoveryCodesSpecV1 {
@@ -22413,7 +22686,7 @@ export namespace types {
                       __proto.Sizer.varint64(this.HashedCode.length) +
                       this.HashedCode.length
                     : 0;
-            size += 1 + 1;
+            size += this.IsUsed == 0 ? 0 : 1 + 1;
 
             return size;
         }
@@ -22429,8 +22702,10 @@ export namespace types {
                 encoder.uint32(this.HashedCode.length);
                 encoder.bytes(this.HashedCode);
             }
-            encoder.uint32(0x10);
-            encoder.bool(this.IsUsed);
+            if (this.IsUsed != 0) {
+                encoder.uint32(0x10);
+                encoder.bool(this.IsUsed);
+            }
 
             return buf;
         } // encode RecoveryCode
@@ -22446,7 +22721,8 @@ export namespace events {
         public Type: string = "";
         public ID: string = "";
         public Code: string = "";
-        public Time: google.protobuf.Timestamp | null;
+        public Time: google.protobuf.Timestamp =
+            new google.protobuf.Timestamp();
         public ClusterName: string = "";
 
         // Decodes Metadata from an ArrayBuffer
@@ -22509,7 +22785,7 @@ export namespace events {
         public size(): u32 {
             let size: u32 = 0;
 
-            size += 1 + __proto.Sizer.int64(this.Index);
+            size += this.Index == 0 ? 0 : 1 + __proto.Sizer.int64(this.Index);
             size +=
                 this.Type.length > 0
                     ? 1 +
@@ -22556,8 +22832,10 @@ export namespace events {
         ): Array<u8> {
             const buf = encoder.buf;
 
-            encoder.uint32(0x8);
-            encoder.int64(this.Index);
+            if (this.Index != 0) {
+                encoder.uint32(0x8);
+                encoder.int64(this.Index);
+            }
             if (this.Type.length > 0) {
                 encoder.uint32(0x12);
                 encoder.uint32(this.Type.length);
@@ -23249,14 +23527,17 @@ export namespace events {
     } // KubernetesPodMetadata
 
     export class SessionStart {
-        public Metadata: events.Metadata | null;
-        public User: events.UserMetadata | null;
-        public Session: events.SessionMetadata | null;
-        public Server: events.ServerMetadata | null;
-        public Connection: events.ConnectionMetadata | null;
+        public Metadata: events.Metadata = new events.Metadata();
+        public User: events.UserMetadata = new events.UserMetadata();
+        public Session: events.SessionMetadata = new events.SessionMetadata();
+        public Server: events.ServerMetadata = new events.ServerMetadata();
+        public Connection: events.ConnectionMetadata =
+            new events.ConnectionMetadata();
         public TerminalSize: string = "";
-        public KubernetesCluster: events.KubernetesClusterMetadata | null;
-        public KubernetesPod: events.KubernetesPodMetadata | null;
+        public KubernetesCluster: events.KubernetesClusterMetadata =
+            new events.KubernetesClusterMetadata();
+        public KubernetesPod: events.KubernetesPodMetadata =
+            new events.KubernetesPodMetadata();
         public InitialCommand: Array<string> = new Array<string>();
         public SessionRecording: string = "";
         public AccessRequests: Array<string> = new Array<string>();
@@ -23616,12 +23897,14 @@ export namespace events {
     } // SessionStart
 
     export class SessionJoin {
-        public Metadata: events.Metadata | null;
-        public User: events.UserMetadata | null;
-        public Session: events.SessionMetadata | null;
-        public Server: events.ServerMetadata | null;
-        public Connection: events.ConnectionMetadata | null;
-        public KubernetesCluster: events.KubernetesClusterMetadata | null;
+        public Metadata: events.Metadata = new events.Metadata();
+        public User: events.UserMetadata = new events.UserMetadata();
+        public Session: events.SessionMetadata = new events.SessionMetadata();
+        public Server: events.ServerMetadata = new events.ServerMetadata();
+        public Connection: events.ConnectionMetadata =
+            new events.ConnectionMetadata();
+        public KubernetesCluster: events.KubernetesClusterMetadata =
+            new events.KubernetesClusterMetadata();
 
         // Decodes SessionJoin from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): SessionJoin {
@@ -23880,7 +24163,7 @@ export namespace events {
     } // SessionJoin
 
     export class SessionPrint {
-        public Metadata: events.Metadata | null;
+        public Metadata: events.Metadata = new events.Metadata();
         public ChunkIndex: i64;
         public Data: Array<u8> = new Array<u8>();
         public Bytes: i64;
@@ -23957,16 +24240,22 @@ export namespace events {
                 }
             }
 
-            size += 1 + __proto.Sizer.int64(this.ChunkIndex);
+            size +=
+                this.ChunkIndex == 0
+                    ? 0
+                    : 1 + __proto.Sizer.int64(this.ChunkIndex);
             size +=
                 this.Data.length > 0
                     ? 1 +
                       __proto.Sizer.varint64(this.Data.length) +
                       this.Data.length
                     : 0;
-            size += 1 + __proto.Sizer.int64(this.Bytes);
-            size += 1 + __proto.Sizer.int64(this.DelayMilliseconds);
-            size += 1 + __proto.Sizer.int64(this.Offset);
+            size += this.Bytes == 0 ? 0 : 1 + __proto.Sizer.int64(this.Bytes);
+            size +=
+                this.DelayMilliseconds == 0
+                    ? 0
+                    : 1 + __proto.Sizer.int64(this.DelayMilliseconds);
+            size += this.Offset == 0 ? 0 : 1 + __proto.Sizer.int64(this.Offset);
 
             return size;
         }
@@ -23989,29 +24278,38 @@ export namespace events {
                 }
             }
 
-            encoder.uint32(0x10);
-            encoder.int64(this.ChunkIndex);
+            if (this.ChunkIndex != 0) {
+                encoder.uint32(0x10);
+                encoder.int64(this.ChunkIndex);
+            }
             if (this.Data.length > 0) {
                 encoder.uint32(0x1a);
                 encoder.uint32(this.Data.length);
                 encoder.bytes(this.Data);
             }
-            encoder.uint32(0x20);
-            encoder.int64(this.Bytes);
-            encoder.uint32(0x28);
-            encoder.int64(this.DelayMilliseconds);
-            encoder.uint32(0x30);
-            encoder.int64(this.Offset);
+            if (this.Bytes != 0) {
+                encoder.uint32(0x20);
+                encoder.int64(this.Bytes);
+            }
+            if (this.DelayMilliseconds != 0) {
+                encoder.uint32(0x28);
+                encoder.int64(this.DelayMilliseconds);
+            }
+            if (this.Offset != 0) {
+                encoder.uint32(0x30);
+                encoder.int64(this.Offset);
+            }
 
             return buf;
         } // encode SessionPrint
     } // SessionPrint
 
     export class SessionReject {
-        public Metadata: events.Metadata | null;
-        public User: events.UserMetadata | null;
-        public Server: events.ServerMetadata | null;
-        public Connection: events.ConnectionMetadata | null;
+        public Metadata: events.Metadata = new events.Metadata();
+        public User: events.UserMetadata = new events.UserMetadata();
+        public Server: events.ServerMetadata = new events.ServerMetadata();
+        public Connection: events.ConnectionMetadata =
+            new events.ConnectionMetadata();
         public Reason: string = "";
         public Maximum: i64;
 
@@ -24150,7 +24448,8 @@ export namespace events {
                       __proto.Sizer.varint64(this.Reason.length) +
                       this.Reason.length
                     : 0;
-            size += 1 + __proto.Sizer.int64(this.Maximum);
+            size +=
+                this.Maximum == 0 ? 0 : 1 + __proto.Sizer.int64(this.Maximum);
 
             return size;
         }
@@ -24214,22 +24513,27 @@ export namespace events {
                 encoder.uint32(this.Reason.length);
                 encoder.string(this.Reason);
             }
-            encoder.uint32(0x30);
-            encoder.int64(this.Maximum);
+            if (this.Maximum != 0) {
+                encoder.uint32(0x30);
+                encoder.int64(this.Maximum);
+            }
 
             return buf;
         } // encode SessionReject
     } // SessionReject
 
     export class Resize {
-        public Metadata: events.Metadata | null;
-        public User: events.UserMetadata | null;
-        public Session: events.SessionMetadata | null;
-        public Connection: events.ConnectionMetadata | null;
-        public Server: events.ServerMetadata | null;
+        public Metadata: events.Metadata = new events.Metadata();
+        public User: events.UserMetadata = new events.UserMetadata();
+        public Session: events.SessionMetadata = new events.SessionMetadata();
+        public Connection: events.ConnectionMetadata =
+            new events.ConnectionMetadata();
+        public Server: events.ServerMetadata = new events.ServerMetadata();
         public TerminalSize: string = "";
-        public KubernetesCluster: events.KubernetesClusterMetadata | null;
-        public KubernetesPod: events.KubernetesPodMetadata | null;
+        public KubernetesCluster: events.KubernetesClusterMetadata =
+            new events.KubernetesClusterMetadata();
+        public KubernetesPod: events.KubernetesPodMetadata =
+            new events.KubernetesPodMetadata();
 
         // Decodes Resize from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): Resize {
@@ -24541,18 +24845,23 @@ export namespace events {
     } // Resize
 
     export class SessionEnd {
-        public Metadata: events.Metadata | null;
-        public User: events.UserMetadata | null;
-        public Session: events.SessionMetadata | null;
-        public Connection: events.ConnectionMetadata | null;
-        public Server: events.ServerMetadata | null;
+        public Metadata: events.Metadata = new events.Metadata();
+        public User: events.UserMetadata = new events.UserMetadata();
+        public Session: events.SessionMetadata = new events.SessionMetadata();
+        public Connection: events.ConnectionMetadata =
+            new events.ConnectionMetadata();
+        public Server: events.ServerMetadata = new events.ServerMetadata();
         public EnhancedRecording: bool;
         public Interactive: bool;
         public Participants: Array<string> = new Array<string>();
-        public StartTime: google.protobuf.Timestamp | null;
-        public EndTime: google.protobuf.Timestamp | null;
-        public KubernetesCluster: events.KubernetesClusterMetadata | null;
-        public KubernetesPod: events.KubernetesPodMetadata | null;
+        public StartTime: google.protobuf.Timestamp =
+            new google.protobuf.Timestamp();
+        public EndTime: google.protobuf.Timestamp =
+            new google.protobuf.Timestamp();
+        public KubernetesCluster: events.KubernetesClusterMetadata =
+            new events.KubernetesClusterMetadata();
+        public KubernetesPod: events.KubernetesPodMetadata =
+            new events.KubernetesPodMetadata();
         public InitialCommand: Array<string> = new Array<string>();
         public SessionRecording: string = "";
 
@@ -24774,8 +25083,8 @@ export namespace events {
                 }
             }
 
-            size += 1 + 1;
-            size += 1 + 1;
+            size += this.EnhancedRecording == 0 ? 0 : 1 + 1;
+            size += this.Interactive == 0 ? 0 : 1 + 1;
 
             size += __size_string_repeated(this.Participants);
 
@@ -24901,10 +25210,14 @@ export namespace events {
                 }
             }
 
-            encoder.uint32(0x30);
-            encoder.bool(this.EnhancedRecording);
-            encoder.uint32(0x38);
-            encoder.bool(this.Interactive);
+            if (this.EnhancedRecording != 0) {
+                encoder.uint32(0x30);
+                encoder.bool(this.EnhancedRecording);
+            }
+            if (this.Interactive != 0) {
+                encoder.uint32(0x38);
+                encoder.bool(this.Interactive);
+            }
 
             if (this.Participants.length > 0) {
                 for (let n: i32 = 0; n < this.Participants.length; n++) {
@@ -25025,8 +25338,11 @@ export namespace events {
         public size(): u32 {
             let size: u32 = 0;
 
-            size += 1 + __proto.Sizer.uint64(this.PID);
-            size += 1 + __proto.Sizer.uint64(this.CgroupID);
+            size += this.PID == 0 ? 0 : 1 + __proto.Sizer.uint64(this.PID);
+            size +=
+                this.CgroupID == 0
+                    ? 0
+                    : 1 + __proto.Sizer.uint64(this.CgroupID);
             size +=
                 this.Program.length > 0
                     ? 1 +
@@ -25043,10 +25359,14 @@ export namespace events {
         ): Array<u8> {
             const buf = encoder.buf;
 
-            encoder.uint32(0x8);
-            encoder.uint64(this.PID);
-            encoder.uint32(0x10);
-            encoder.uint64(this.CgroupID);
+            if (this.PID != 0) {
+                encoder.uint32(0x8);
+                encoder.uint64(this.PID);
+            }
+            if (this.CgroupID != 0) {
+                encoder.uint32(0x10);
+                encoder.uint64(this.CgroupID);
+            }
             if (this.Program.length > 0) {
                 encoder.uint32(0x1a);
                 encoder.uint32(this.Program.length);
@@ -25101,7 +25421,7 @@ export namespace events {
         public size(): u32 {
             let size: u32 = 0;
 
-            size += 1 + 1;
+            size += this.Success == 0 ? 0 : 1 + 1;
             size +=
                 this.Error.length > 0
                     ? 1 +
@@ -25124,8 +25444,10 @@ export namespace events {
         ): Array<u8> {
             const buf = encoder.buf;
 
-            encoder.uint32(0x8);
-            encoder.bool(this.Success);
+            if (this.Success != 0) {
+                encoder.uint32(0x8);
+                encoder.bool(this.Success);
+            }
             if (this.Error.length > 0) {
                 encoder.uint32(0x12);
                 encoder.uint32(this.Error.length);
@@ -25142,11 +25464,11 @@ export namespace events {
     } // Status
 
     export class SessionCommand {
-        public Metadata: events.Metadata | null;
-        public User: events.UserMetadata | null;
-        public Session: events.SessionMetadata | null;
-        public Server: events.ServerMetadata | null;
-        public BPF: events.BPFMetadata | null;
+        public Metadata: events.Metadata = new events.Metadata();
+        public User: events.UserMetadata = new events.UserMetadata();
+        public Session: events.SessionMetadata = new events.SessionMetadata();
+        public Server: events.ServerMetadata = new events.ServerMetadata();
+        public BPF: events.BPFMetadata = new events.BPFMetadata();
         public PPID: u64;
         public Path: string = "";
         public Argv: Array<string> = new Array<string>();
@@ -25312,7 +25634,7 @@ export namespace events {
                 }
             }
 
-            size += 1 + __proto.Sizer.uint64(this.PPID);
+            size += this.PPID == 0 ? 0 : 1 + __proto.Sizer.uint64(this.PPID);
             size +=
                 this.Path.length > 0
                     ? 1 +
@@ -25322,7 +25644,10 @@ export namespace events {
 
             size += __size_string_repeated(this.Argv);
 
-            size += 1 + __proto.Sizer.int32(this.ReturnCode);
+            size +=
+                this.ReturnCode == 0
+                    ? 0
+                    : 1 + __proto.Sizer.int32(this.ReturnCode);
 
             return size;
         }
@@ -25393,8 +25718,10 @@ export namespace events {
                 }
             }
 
-            encoder.uint32(0x30);
-            encoder.uint64(this.PPID);
+            if (this.PPID != 0) {
+                encoder.uint32(0x30);
+                encoder.uint64(this.PPID);
+            }
             if (this.Path.length > 0) {
                 encoder.uint32(0x3a);
                 encoder.uint32(this.Path.length);
@@ -25409,19 +25736,21 @@ export namespace events {
                 }
             }
 
-            encoder.uint32(0x48);
-            encoder.int32(this.ReturnCode);
+            if (this.ReturnCode != 0) {
+                encoder.uint32(0x48);
+                encoder.int32(this.ReturnCode);
+            }
 
             return buf;
         } // encode SessionCommand
     } // SessionCommand
 
     export class SessionDisk {
-        public Metadata: events.Metadata | null;
-        public User: events.UserMetadata | null;
-        public Session: events.SessionMetadata | null;
-        public Server: events.ServerMetadata | null;
-        public BPF: events.BPFMetadata | null;
+        public Metadata: events.Metadata = new events.Metadata();
+        public User: events.UserMetadata = new events.UserMetadata();
+        public Session: events.SessionMetadata = new events.SessionMetadata();
+        public Server: events.ServerMetadata = new events.ServerMetadata();
+        public BPF: events.BPFMetadata = new events.BPFMetadata();
         public Path: string = "";
         public Flags: i32;
         public ReturnCode: i32;
@@ -25588,8 +25917,11 @@ export namespace events {
                       __proto.Sizer.varint64(this.Path.length) +
                       this.Path.length
                     : 0;
-            size += 1 + __proto.Sizer.int32(this.Flags);
-            size += 1 + __proto.Sizer.int32(this.ReturnCode);
+            size += this.Flags == 0 ? 0 : 1 + __proto.Sizer.int32(this.Flags);
+            size +=
+                this.ReturnCode == 0
+                    ? 0
+                    : 1 + __proto.Sizer.int32(this.ReturnCode);
 
             return size;
         }
@@ -25665,21 +25997,25 @@ export namespace events {
                 encoder.uint32(this.Path.length);
                 encoder.string(this.Path);
             }
-            encoder.uint32(0x38);
-            encoder.int32(this.Flags);
-            encoder.uint32(0x40);
-            encoder.int32(this.ReturnCode);
+            if (this.Flags != 0) {
+                encoder.uint32(0x38);
+                encoder.int32(this.Flags);
+            }
+            if (this.ReturnCode != 0) {
+                encoder.uint32(0x40);
+                encoder.int32(this.ReturnCode);
+            }
 
             return buf;
         } // encode SessionDisk
     } // SessionDisk
 
     export class SessionNetwork {
-        public Metadata: events.Metadata | null;
-        public User: events.UserMetadata | null;
-        public Session: events.SessionMetadata | null;
-        public Server: events.ServerMetadata | null;
-        public BPF: events.BPFMetadata | null;
+        public Metadata: events.Metadata = new events.Metadata();
+        public User: events.UserMetadata = new events.UserMetadata();
+        public Session: events.SessionMetadata = new events.SessionMetadata();
+        public Server: events.ServerMetadata = new events.ServerMetadata();
+        public BPF: events.BPFMetadata = new events.BPFMetadata();
         public SrcAddr: string = "";
         public DstAddr: string = "";
         public DstPort: i32;
@@ -25867,10 +26203,18 @@ export namespace events {
                       __proto.Sizer.varint64(this.DstAddr.length) +
                       this.DstAddr.length
                     : 0;
-            size += 1 + __proto.Sizer.int32(this.DstPort);
-            size += 1 + __proto.Sizer.int32(this.TCPVersion);
-            size += 1 + __proto.Sizer.uint32(this.Operation);
-            size += 1 + __proto.Sizer.uint32(this.Action);
+            size +=
+                this.DstPort == 0 ? 0 : 1 + __proto.Sizer.int32(this.DstPort);
+            size +=
+                this.TCPVersion == 0
+                    ? 0
+                    : 1 + __proto.Sizer.int32(this.TCPVersion);
+            size +=
+                this.Operation == 0
+                    ? 0
+                    : 1 + __proto.Sizer.uint32(this.Operation);
+            size +=
+                this.Action == 0 ? 0 : 1 + __proto.Sizer.uint32(this.Action);
 
             return size;
         }
@@ -25951,14 +26295,22 @@ export namespace events {
                 encoder.uint32(this.DstAddr.length);
                 encoder.string(this.DstAddr);
             }
-            encoder.uint32(0x40);
-            encoder.int32(this.DstPort);
-            encoder.uint32(0x48);
-            encoder.int32(this.TCPVersion);
-            encoder.uint32(0x50);
-            encoder.uint32(this.Operation);
-            encoder.uint32(0x58);
-            encoder.uint32(this.Action);
+            if (this.DstPort != 0) {
+                encoder.uint32(0x40);
+                encoder.int32(this.DstPort);
+            }
+            if (this.TCPVersion != 0) {
+                encoder.uint32(0x48);
+                encoder.int32(this.TCPVersion);
+            }
+            if (this.Operation != 0) {
+                encoder.uint32(0x50);
+                encoder.uint32(this.Operation);
+            }
+            if (this.Action != 0) {
+                encoder.uint32(0x58);
+                encoder.uint32(this.Action);
+            }
 
             return buf;
         } // encode SessionNetwork
@@ -25969,11 +26321,12 @@ export namespace events {
         SEND = 1,
     } // SessionNetwork_NetworkOperation
     export class SessionData {
-        public Metadata: events.Metadata | null;
-        public User: events.UserMetadata | null;
-        public Session: events.SessionMetadata | null;
-        public Server: events.ServerMetadata | null;
-        public Connection: events.ConnectionMetadata | null;
+        public Metadata: events.Metadata = new events.Metadata();
+        public User: events.UserMetadata = new events.UserMetadata();
+        public Session: events.SessionMetadata = new events.SessionMetadata();
+        public Server: events.ServerMetadata = new events.ServerMetadata();
+        public Connection: events.ConnectionMetadata =
+            new events.ConnectionMetadata();
         public BytesTransmitted: u64;
         public BytesReceived: u64;
 
@@ -26130,8 +26483,14 @@ export namespace events {
                 }
             }
 
-            size += 1 + __proto.Sizer.uint64(this.BytesTransmitted);
-            size += 1 + __proto.Sizer.uint64(this.BytesReceived);
+            size +=
+                this.BytesTransmitted == 0
+                    ? 0
+                    : 1 + __proto.Sizer.uint64(this.BytesTransmitted);
+            size +=
+                this.BytesReceived == 0
+                    ? 0
+                    : 1 + __proto.Sizer.uint64(this.BytesReceived);
 
             return size;
         }
@@ -26202,21 +26561,26 @@ export namespace events {
                 }
             }
 
-            encoder.uint32(0x30);
-            encoder.uint64(this.BytesTransmitted);
-            encoder.uint32(0x38);
-            encoder.uint64(this.BytesReceived);
+            if (this.BytesTransmitted != 0) {
+                encoder.uint32(0x30);
+                encoder.uint64(this.BytesTransmitted);
+            }
+            if (this.BytesReceived != 0) {
+                encoder.uint32(0x38);
+                encoder.uint64(this.BytesReceived);
+            }
 
             return buf;
         } // encode SessionData
     } // SessionData
 
     export class SessionLeave {
-        public Metadata: events.Metadata | null;
-        public User: events.UserMetadata | null;
-        public Session: events.SessionMetadata | null;
-        public Server: events.ServerMetadata | null;
-        public Connection: events.ConnectionMetadata | null;
+        public Metadata: events.Metadata = new events.Metadata();
+        public User: events.UserMetadata = new events.UserMetadata();
+        public Session: events.SessionMetadata = new events.SessionMetadata();
+        public Server: events.ServerMetadata = new events.ServerMetadata();
+        public Connection: events.ConnectionMetadata =
+            new events.ConnectionMetadata();
 
         // Decodes SessionLeave from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): SessionLeave {
@@ -26437,12 +26801,14 @@ export namespace events {
     } // SessionLeave
 
     export class UserLogin {
-        public Metadata: events.Metadata | null;
-        public User: events.UserMetadata | null;
-        public Status: events.Status | null;
+        public Metadata: events.Metadata = new events.Metadata();
+        public User: events.UserMetadata = new events.UserMetadata();
+        public Status: events.Status = new events.Status();
         public Method: string = "";
-        public IdentityAttributes: google.protobuf.Struct | null;
-        public MFADevice: events.MFADeviceMetadata | null;
+        public IdentityAttributes: google.protobuf.Struct =
+            new google.protobuf.Struct();
+        public MFADevice: events.MFADeviceMetadata =
+            new events.MFADeviceMetadata();
 
         // Decodes UserLogin from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): UserLogin {
@@ -26680,7 +27046,8 @@ export namespace events {
 
     export class ResourceMetadata {
         public Name: string = "";
-        public Expires: google.protobuf.Timestamp | null;
+        public Expires: google.protobuf.Timestamp =
+            new google.protobuf.Timestamp();
         public UpdatedBy: string = "";
         public TTL: string = "";
 
@@ -26810,9 +27177,10 @@ export namespace events {
     } // ResourceMetadata
 
     export class UserCreate {
-        public Metadata: events.Metadata | null;
-        public User: events.UserMetadata | null;
-        public Resource: events.ResourceMetadata | null;
+        public Metadata: events.Metadata = new events.Metadata();
+        public User: events.UserMetadata = new events.UserMetadata();
+        public Resource: events.ResourceMetadata =
+            new events.ResourceMetadata();
         public Roles: Array<string> = new Array<string>();
         public Connector: string = "";
 
@@ -26994,9 +27362,10 @@ export namespace events {
     } // UserCreate
 
     export class UserDelete {
-        public Metadata: events.Metadata | null;
-        public User: events.UserMetadata | null;
-        public Resource: events.ResourceMetadata | null;
+        public Metadata: events.Metadata = new events.Metadata();
+        public User: events.UserMetadata = new events.UserMetadata();
+        public Resource: events.ResourceMetadata =
+            new events.ResourceMetadata();
 
         // Decodes UserDelete from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): UserDelete {
@@ -27145,8 +27514,8 @@ export namespace events {
     } // UserDelete
 
     export class UserPasswordChange {
-        public Metadata: events.Metadata | null;
-        public User: events.UserMetadata | null;
+        public Metadata: events.Metadata = new events.Metadata();
+        public User: events.UserMetadata = new events.UserMetadata();
 
         // Decodes UserPasswordChange from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): UserPasswordChange {
@@ -27259,15 +27628,17 @@ export namespace events {
     } // UserPasswordChange
 
     export class AccessRequestCreate {
-        public Metadata: events.Metadata | null;
-        public User: events.UserMetadata | null;
-        public Resource: events.ResourceMetadata | null;
+        public Metadata: events.Metadata = new events.Metadata();
+        public User: events.UserMetadata = new events.UserMetadata();
+        public Resource: events.ResourceMetadata =
+            new events.ResourceMetadata();
         public Roles: Array<string> = new Array<string>();
         public RequestID: string = "";
         public RequestState: string = "";
         public Delegator: string = "";
         public Reason: string = "";
-        public Annotations: google.protobuf.Struct | null;
+        public Annotations: google.protobuf.Struct =
+            new google.protobuf.Struct();
         public Reviewer: string = "";
         public ProposedState: string = "";
 
@@ -27562,10 +27933,11 @@ export namespace events {
     } // AccessRequestCreate
 
     export class PortForward {
-        public Metadata: events.Metadata | null;
-        public User: events.UserMetadata | null;
-        public Connection: events.ConnectionMetadata | null;
-        public Status: events.Status | null;
+        public Metadata: events.Metadata = new events.Metadata();
+        public User: events.UserMetadata = new events.UserMetadata();
+        public Connection: events.ConnectionMetadata =
+            new events.ConnectionMetadata();
+        public Status: events.Status = new events.Status();
         public Addr: string = "";
 
         // Decodes PortForward from an ArrayBuffer
@@ -27767,10 +28139,11 @@ export namespace events {
     } // PortForward
 
     export class X11Forward {
-        public Metadata: events.Metadata | null;
-        public User: events.UserMetadata | null;
-        public Connection: events.ConnectionMetadata | null;
-        public Status: events.Status | null;
+        public Metadata: events.Metadata = new events.Metadata();
+        public User: events.UserMetadata = new events.UserMetadata();
+        public Connection: events.ConnectionMetadata =
+            new events.ConnectionMetadata();
+        public Status: events.Status = new events.Status();
 
         // Decodes X11Forward from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): X11Forward {
@@ -28046,14 +28419,17 @@ export namespace events {
     } // CommandMetadata
 
     export class Exec {
-        public Metadata: events.Metadata | null;
-        public User: events.UserMetadata | null;
-        public Connection: events.ConnectionMetadata | null;
-        public Session: events.SessionMetadata | null;
-        public Server: events.ServerMetadata | null;
-        public Command: events.CommandMetadata | null;
-        public KubernetesCluster: events.KubernetesClusterMetadata | null;
-        public KubernetesPod: events.KubernetesPodMetadata | null;
+        public Metadata: events.Metadata = new events.Metadata();
+        public User: events.UserMetadata = new events.UserMetadata();
+        public Connection: events.ConnectionMetadata =
+            new events.ConnectionMetadata();
+        public Session: events.SessionMetadata = new events.SessionMetadata();
+        public Server: events.ServerMetadata = new events.ServerMetadata();
+        public Command: events.CommandMetadata = new events.CommandMetadata();
+        public KubernetesCluster: events.KubernetesClusterMetadata =
+            new events.KubernetesClusterMetadata();
+        public KubernetesPod: events.KubernetesPodMetadata =
+            new events.KubernetesPodMetadata();
 
         // Decodes Exec from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): Exec {
@@ -28384,12 +28760,13 @@ export namespace events {
     } // Exec
 
     export class SCP {
-        public Metadata: events.Metadata | null;
-        public User: events.UserMetadata | null;
-        public Connection: events.ConnectionMetadata | null;
-        public Session: events.SessionMetadata | null;
-        public Server: events.ServerMetadata | null;
-        public Command: events.CommandMetadata | null;
+        public Metadata: events.Metadata = new events.Metadata();
+        public User: events.UserMetadata = new events.UserMetadata();
+        public Connection: events.ConnectionMetadata =
+            new events.ConnectionMetadata();
+        public Session: events.SessionMetadata = new events.SessionMetadata();
+        public Server: events.ServerMetadata = new events.ServerMetadata();
+        public Command: events.CommandMetadata = new events.CommandMetadata();
         public Path: string = "";
         public Action: string = "";
 
@@ -28680,9 +29057,10 @@ export namespace events {
     } // SCP
 
     export class Subsystem {
-        public Metadata: events.Metadata | null;
-        public User: events.UserMetadata | null;
-        public Connection: events.ConnectionMetadata | null;
+        public Metadata: events.Metadata = new events.Metadata();
+        public User: events.UserMetadata = new events.UserMetadata();
+        public Connection: events.ConnectionMetadata =
+            new events.ConnectionMetadata();
         public Name: string = "";
         public Error: string = "";
 
@@ -28865,10 +29243,11 @@ export namespace events {
     } // Subsystem
 
     export class ClientDisconnect {
-        public Metadata: events.Metadata | null;
-        public User: events.UserMetadata | null;
-        public Connection: events.ConnectionMetadata | null;
-        public Server: events.ServerMetadata | null;
+        public Metadata: events.Metadata = new events.Metadata();
+        public User: events.UserMetadata = new events.UserMetadata();
+        public Connection: events.ConnectionMetadata =
+            new events.ConnectionMetadata();
+        public Server: events.ServerMetadata = new events.ServerMetadata();
         public Reason: string = "";
 
         // Decodes ClientDisconnect from an ArrayBuffer
@@ -29071,10 +29450,11 @@ export namespace events {
     } // ClientDisconnect
 
     export class AuthAttempt {
-        public Metadata: events.Metadata | null;
-        public User: events.UserMetadata | null;
-        public Connection: events.ConnectionMetadata | null;
-        public Status: events.Status | null;
+        public Metadata: events.Metadata = new events.Metadata();
+        public User: events.UserMetadata = new events.UserMetadata();
+        public Connection: events.ConnectionMetadata =
+            new events.ConnectionMetadata();
+        public Status: events.Status = new events.Status();
 
         // Decodes AuthAttempt from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): AuthAttempt {
@@ -29258,9 +29638,10 @@ export namespace events {
     } // AuthAttempt
 
     export class UserTokenCreate {
-        public Metadata: events.Metadata | null;
-        public Resource: events.ResourceMetadata | null;
-        public User: events.UserMetadata | null;
+        public Metadata: events.Metadata = new events.Metadata();
+        public Resource: events.ResourceMetadata =
+            new events.ResourceMetadata();
+        public User: events.UserMetadata = new events.UserMetadata();
 
         // Decodes UserTokenCreate from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): UserTokenCreate {
@@ -29409,9 +29790,10 @@ export namespace events {
     } // UserTokenCreate
 
     export class RoleCreate {
-        public Metadata: events.Metadata | null;
-        public Resource: events.ResourceMetadata | null;
-        public User: events.UserMetadata | null;
+        public Metadata: events.Metadata = new events.Metadata();
+        public Resource: events.ResourceMetadata =
+            new events.ResourceMetadata();
+        public User: events.UserMetadata = new events.UserMetadata();
 
         // Decodes RoleCreate from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): RoleCreate {
@@ -29560,9 +29942,10 @@ export namespace events {
     } // RoleCreate
 
     export class RoleDelete {
-        public Metadata: events.Metadata | null;
-        public Resource: events.ResourceMetadata | null;
-        public User: events.UserMetadata | null;
+        public Metadata: events.Metadata = new events.Metadata();
+        public Resource: events.ResourceMetadata =
+            new events.ResourceMetadata();
+        public User: events.UserMetadata = new events.UserMetadata();
 
         // Decodes RoleDelete from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): RoleDelete {
@@ -29711,9 +30094,10 @@ export namespace events {
     } // RoleDelete
 
     export class TrustedClusterCreate {
-        public Metadata: events.Metadata | null;
-        public Resource: events.ResourceMetadata | null;
-        public User: events.UserMetadata | null;
+        public Metadata: events.Metadata = new events.Metadata();
+        public Resource: events.ResourceMetadata =
+            new events.ResourceMetadata();
+        public User: events.UserMetadata = new events.UserMetadata();
 
         // Decodes TrustedClusterCreate from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): TrustedClusterCreate {
@@ -29862,9 +30246,10 @@ export namespace events {
     } // TrustedClusterCreate
 
     export class TrustedClusterDelete {
-        public Metadata: events.Metadata | null;
-        public Resource: events.ResourceMetadata | null;
-        public User: events.UserMetadata | null;
+        public Metadata: events.Metadata = new events.Metadata();
+        public Resource: events.ResourceMetadata =
+            new events.ResourceMetadata();
+        public User: events.UserMetadata = new events.UserMetadata();
 
         // Decodes TrustedClusterDelete from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): TrustedClusterDelete {
@@ -30013,9 +30398,10 @@ export namespace events {
     } // TrustedClusterDelete
 
     export class TrustedClusterTokenCreate {
-        public Metadata: events.Metadata | null;
-        public Resource: events.ResourceMetadata | null;
-        public User: events.UserMetadata | null;
+        public Metadata: events.Metadata = new events.Metadata();
+        public Resource: events.ResourceMetadata =
+            new events.ResourceMetadata();
+        public User: events.UserMetadata = new events.UserMetadata();
 
         // Decodes TrustedClusterTokenCreate from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): TrustedClusterTokenCreate {
@@ -30164,9 +30550,10 @@ export namespace events {
     } // TrustedClusterTokenCreate
 
     export class GithubConnectorCreate {
-        public Metadata: events.Metadata | null;
-        public Resource: events.ResourceMetadata | null;
-        public User: events.UserMetadata | null;
+        public Metadata: events.Metadata = new events.Metadata();
+        public Resource: events.ResourceMetadata =
+            new events.ResourceMetadata();
+        public User: events.UserMetadata = new events.UserMetadata();
 
         // Decodes GithubConnectorCreate from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): GithubConnectorCreate {
@@ -30315,9 +30702,10 @@ export namespace events {
     } // GithubConnectorCreate
 
     export class GithubConnectorDelete {
-        public Metadata: events.Metadata | null;
-        public Resource: events.ResourceMetadata | null;
-        public User: events.UserMetadata | null;
+        public Metadata: events.Metadata = new events.Metadata();
+        public Resource: events.ResourceMetadata =
+            new events.ResourceMetadata();
+        public User: events.UserMetadata = new events.UserMetadata();
 
         // Decodes GithubConnectorDelete from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): GithubConnectorDelete {
@@ -30466,9 +30854,10 @@ export namespace events {
     } // GithubConnectorDelete
 
     export class OIDCConnectorCreate {
-        public Metadata: events.Metadata | null;
-        public Resource: events.ResourceMetadata | null;
-        public User: events.UserMetadata | null;
+        public Metadata: events.Metadata = new events.Metadata();
+        public Resource: events.ResourceMetadata =
+            new events.ResourceMetadata();
+        public User: events.UserMetadata = new events.UserMetadata();
 
         // Decodes OIDCConnectorCreate from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): OIDCConnectorCreate {
@@ -30617,9 +31006,10 @@ export namespace events {
     } // OIDCConnectorCreate
 
     export class OIDCConnectorDelete {
-        public Metadata: events.Metadata | null;
-        public Resource: events.ResourceMetadata | null;
-        public User: events.UserMetadata | null;
+        public Metadata: events.Metadata = new events.Metadata();
+        public Resource: events.ResourceMetadata =
+            new events.ResourceMetadata();
+        public User: events.UserMetadata = new events.UserMetadata();
 
         // Decodes OIDCConnectorDelete from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): OIDCConnectorDelete {
@@ -30768,9 +31158,10 @@ export namespace events {
     } // OIDCConnectorDelete
 
     export class SAMLConnectorCreate {
-        public Metadata: events.Metadata | null;
-        public Resource: events.ResourceMetadata | null;
-        public User: events.UserMetadata | null;
+        public Metadata: events.Metadata = new events.Metadata();
+        public Resource: events.ResourceMetadata =
+            new events.ResourceMetadata();
+        public User: events.UserMetadata = new events.UserMetadata();
 
         // Decodes SAMLConnectorCreate from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): SAMLConnectorCreate {
@@ -30919,9 +31310,10 @@ export namespace events {
     } // SAMLConnectorCreate
 
     export class SAMLConnectorDelete {
-        public Metadata: events.Metadata | null;
-        public Resource: events.ResourceMetadata | null;
-        public User: events.UserMetadata | null;
+        public Metadata: events.Metadata = new events.Metadata();
+        public Resource: events.ResourceMetadata =
+            new events.ResourceMetadata();
+        public User: events.UserMetadata = new events.UserMetadata();
 
         // Decodes SAMLConnectorDelete from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): SAMLConnectorDelete {
@@ -31070,10 +31462,11 @@ export namespace events {
     } // SAMLConnectorDelete
 
     export class KubeRequest {
-        public Metadata: events.Metadata | null;
-        public User: events.UserMetadata | null;
-        public Connection: events.ConnectionMetadata | null;
-        public Server: events.ServerMetadata | null;
+        public Metadata: events.Metadata = new events.Metadata();
+        public User: events.UserMetadata = new events.UserMetadata();
+        public Connection: events.ConnectionMetadata =
+            new events.ConnectionMetadata();
+        public Server: events.ServerMetadata = new events.ServerMetadata();
         public RequestPath: string = "";
         public Verb: string = "";
         public ResourceAPIGroup: string = "";
@@ -31081,7 +31474,8 @@ export namespace events {
         public ResourceKind: string = "";
         public ResourceName: string = "";
         public ResponseCode: i32;
-        public Kubernetes: events.KubernetesClusterMetadata | null;
+        public Kubernetes: events.KubernetesClusterMetadata =
+            new events.KubernetesClusterMetadata();
 
         // Decodes KubeRequest from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): KubeRequest {
@@ -31282,7 +31676,10 @@ export namespace events {
                       __proto.Sizer.varint64(this.ResourceName.length) +
                       this.ResourceName.length
                     : 0;
-            size += 1 + __proto.Sizer.int32(this.ResponseCode);
+            size +=
+                this.ResponseCode == 0
+                    ? 0
+                    : 1 + __proto.Sizer.int32(this.ResponseCode);
 
             if (this.Kubernetes != null) {
                 const f: events.KubernetesClusterMetadata = this
@@ -31382,8 +31779,10 @@ export namespace events {
                 encoder.uint32(this.ResourceName.length);
                 encoder.string(this.ResourceName);
             }
-            encoder.uint32(0x58);
-            encoder.int32(this.ResponseCode);
+            if (this.ResponseCode != 0) {
+                encoder.uint32(0x58);
+                encoder.int32(this.ResponseCode);
+            }
 
             if (this.Kubernetes != null) {
                 const f = this.Kubernetes as events.KubernetesClusterMetadata;
@@ -31526,10 +31925,11 @@ export namespace events {
     } // AppMetadata
 
     export class AppCreate {
-        public Metadata: events.Metadata | null;
-        public User: events.UserMetadata | null;
-        public Resource: events.ResourceMetadata | null;
-        public App: events.AppMetadata | null;
+        public Metadata: events.Metadata = new events.Metadata();
+        public User: events.UserMetadata = new events.UserMetadata();
+        public Resource: events.ResourceMetadata =
+            new events.ResourceMetadata();
+        public App: events.AppMetadata = new events.AppMetadata();
 
         // Decodes AppCreate from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): AppCreate {
@@ -31713,10 +32113,11 @@ export namespace events {
     } // AppCreate
 
     export class AppUpdate {
-        public Metadata: events.Metadata | null;
-        public User: events.UserMetadata | null;
-        public Resource: events.ResourceMetadata | null;
-        public App: events.AppMetadata | null;
+        public Metadata: events.Metadata = new events.Metadata();
+        public User: events.UserMetadata = new events.UserMetadata();
+        public Resource: events.ResourceMetadata =
+            new events.ResourceMetadata();
+        public App: events.AppMetadata = new events.AppMetadata();
 
         // Decodes AppUpdate from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): AppUpdate {
@@ -31900,9 +32301,10 @@ export namespace events {
     } // AppUpdate
 
     export class AppDelete {
-        public Metadata: events.Metadata | null;
-        public User: events.UserMetadata | null;
-        public Resource: events.ResourceMetadata | null;
+        public Metadata: events.Metadata = new events.Metadata();
+        public User: events.UserMetadata = new events.UserMetadata();
+        public Resource: events.ResourceMetadata =
+            new events.ResourceMetadata();
 
         // Decodes AppDelete from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): AppDelete {
@@ -32051,11 +32453,12 @@ export namespace events {
     } // AppDelete
 
     export class AppSessionStart {
-        public Metadata: events.Metadata | null;
-        public User: events.UserMetadata | null;
-        public Session: events.SessionMetadata | null;
-        public Server: events.ServerMetadata | null;
-        public Connection: events.ConnectionMetadata | null;
+        public Metadata: events.Metadata = new events.Metadata();
+        public User: events.UserMetadata = new events.UserMetadata();
+        public Session: events.SessionMetadata = new events.SessionMetadata();
+        public Server: events.ServerMetadata = new events.ServerMetadata();
+        public Connection: events.ConnectionMetadata =
+            new events.ConnectionMetadata();
         public PublicAddr: string = "";
 
         // Decodes AppSessionStart from an ArrayBuffer
@@ -32294,11 +32697,12 @@ export namespace events {
     } // AppSessionStart
 
     export class AppSessionChunk {
-        public Metadata: events.Metadata | null;
-        public User: events.UserMetadata | null;
-        public Session: events.SessionMetadata | null;
-        public Server: events.ServerMetadata | null;
-        public Connection: events.ConnectionMetadata | null;
+        public Metadata: events.Metadata = new events.Metadata();
+        public User: events.UserMetadata = new events.UserMetadata();
+        public Session: events.SessionMetadata = new events.SessionMetadata();
+        public Server: events.ServerMetadata = new events.ServerMetadata();
+        public Connection: events.ConnectionMetadata =
+            new events.ConnectionMetadata();
         public SessionChunkID: string = "";
 
         // Decodes AppSessionChunk from an ArrayBuffer
@@ -32537,7 +32941,7 @@ export namespace events {
     } // AppSessionChunk
 
     export class AppSessionRequest {
-        public Metadata: events.Metadata | null;
+        public Metadata: events.Metadata = new events.Metadata();
         public StatusCode: u32;
         public Path: string = "";
         public RawQuery: string = "";
@@ -32609,7 +33013,10 @@ export namespace events {
                 }
             }
 
-            size += 1 + __proto.Sizer.uint32(this.StatusCode);
+            size +=
+                this.StatusCode == 0
+                    ? 0
+                    : 1 + __proto.Sizer.uint32(this.StatusCode);
             size +=
                 this.Path.length > 0
                     ? 1 +
@@ -32650,8 +33057,10 @@ export namespace events {
                 }
             }
 
-            encoder.uint32(0x10);
-            encoder.uint32(this.StatusCode);
+            if (this.StatusCode != 0) {
+                encoder.uint32(0x10);
+                encoder.uint32(this.StatusCode);
+            }
             if (this.Path.length > 0) {
                 encoder.uint32(0x1a);
                 encoder.uint32(this.Path.length);
@@ -32915,10 +33324,12 @@ export namespace events {
     } // DatabaseMetadata
 
     export class DatabaseCreate {
-        public Metadata: events.Metadata | null;
-        public User: events.UserMetadata | null;
-        public Resource: events.ResourceMetadata | null;
-        public Database: events.DatabaseMetadata | null;
+        public Metadata: events.Metadata = new events.Metadata();
+        public User: events.UserMetadata = new events.UserMetadata();
+        public Resource: events.ResourceMetadata =
+            new events.ResourceMetadata();
+        public Database: events.DatabaseMetadata =
+            new events.DatabaseMetadata();
 
         // Decodes DatabaseCreate from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): DatabaseCreate {
@@ -33103,10 +33514,12 @@ export namespace events {
     } // DatabaseCreate
 
     export class DatabaseUpdate {
-        public Metadata: events.Metadata | null;
-        public User: events.UserMetadata | null;
-        public Resource: events.ResourceMetadata | null;
-        public Database: events.DatabaseMetadata | null;
+        public Metadata: events.Metadata = new events.Metadata();
+        public User: events.UserMetadata = new events.UserMetadata();
+        public Resource: events.ResourceMetadata =
+            new events.ResourceMetadata();
+        public Database: events.DatabaseMetadata =
+            new events.DatabaseMetadata();
 
         // Decodes DatabaseUpdate from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): DatabaseUpdate {
@@ -33291,9 +33704,10 @@ export namespace events {
     } // DatabaseUpdate
 
     export class DatabaseDelete {
-        public Metadata: events.Metadata | null;
-        public User: events.UserMetadata | null;
-        public Resource: events.ResourceMetadata | null;
+        public Metadata: events.Metadata = new events.Metadata();
+        public User: events.UserMetadata = new events.UserMetadata();
+        public Resource: events.ResourceMetadata =
+            new events.ResourceMetadata();
 
         // Decodes DatabaseDelete from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): DatabaseDelete {
@@ -33442,13 +33856,15 @@ export namespace events {
     } // DatabaseDelete
 
     export class DatabaseSessionStart {
-        public Metadata: events.Metadata | null;
-        public User: events.UserMetadata | null;
-        public Session: events.SessionMetadata | null;
-        public Server: events.ServerMetadata | null;
-        public Connection: events.ConnectionMetadata | null;
-        public Status: events.Status | null;
-        public Database: events.DatabaseMetadata | null;
+        public Metadata: events.Metadata = new events.Metadata();
+        public User: events.UserMetadata = new events.UserMetadata();
+        public Session: events.SessionMetadata = new events.SessionMetadata();
+        public Server: events.ServerMetadata = new events.ServerMetadata();
+        public Connection: events.ConnectionMetadata =
+            new events.ConnectionMetadata();
+        public Status: events.Status = new events.Status();
+        public Database: events.DatabaseMetadata =
+            new events.DatabaseMetadata();
 
         // Decodes DatabaseSessionStart from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): DatabaseSessionStart {
@@ -33740,13 +34156,14 @@ export namespace events {
     } // DatabaseSessionStart
 
     export class DatabaseSessionQuery {
-        public Metadata: events.Metadata | null;
-        public User: events.UserMetadata | null;
-        public Session: events.SessionMetadata | null;
-        public Database: events.DatabaseMetadata | null;
+        public Metadata: events.Metadata = new events.Metadata();
+        public User: events.UserMetadata = new events.UserMetadata();
+        public Session: events.SessionMetadata = new events.SessionMetadata();
+        public Database: events.DatabaseMetadata =
+            new events.DatabaseMetadata();
         public DatabaseQuery: string = "";
         public DatabaseQueryParameters: Array<string> = new Array<string>();
-        public Status: events.Status | null;
+        public Status: events.Status = new events.Status();
 
         // Decodes DatabaseSessionQuery from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): DatabaseSessionQuery {
@@ -34001,11 +34418,12 @@ export namespace events {
     } // DatabaseSessionQuery
 
     export class WindowsDesktopSessionStart {
-        public Metadata: events.Metadata | null;
-        public User: events.UserMetadata | null;
-        public Session: events.SessionMetadata | null;
-        public Connection: events.ConnectionMetadata | null;
-        public Status: events.Status | null;
+        public Metadata: events.Metadata = new events.Metadata();
+        public User: events.UserMetadata = new events.UserMetadata();
+        public Session: events.SessionMetadata = new events.SessionMetadata();
+        public Connection: events.ConnectionMetadata =
+            new events.ConnectionMetadata();
+        public Status: events.Status = new events.Status();
         public WindowsDesktopService: string = "";
         public DesktopAddr: string = "";
         public Domain: string = "";
@@ -34341,10 +34759,11 @@ export namespace events {
     } // WindowsDesktopSessionStart
 
     export class DatabaseSessionEnd {
-        public Metadata: events.Metadata | null;
-        public User: events.UserMetadata | null;
-        public Session: events.SessionMetadata | null;
-        public Database: events.DatabaseMetadata | null;
+        public Metadata: events.Metadata = new events.Metadata();
+        public User: events.UserMetadata = new events.UserMetadata();
+        public Session: events.SessionMetadata = new events.SessionMetadata();
+        public Database: events.DatabaseMetadata =
+            new events.DatabaseMetadata();
 
         // Decodes DatabaseSessionEnd from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): DatabaseSessionEnd {
@@ -34621,9 +35040,10 @@ export namespace events {
     } // MFADeviceMetadata
 
     export class MFADeviceAdd {
-        public Metadata: events.Metadata | null;
-        public User: events.UserMetadata | null;
-        public Device: events.MFADeviceMetadata | null;
+        public Metadata: events.Metadata = new events.Metadata();
+        public User: events.UserMetadata = new events.UserMetadata();
+        public Device: events.MFADeviceMetadata =
+            new events.MFADeviceMetadata();
 
         // Decodes MFADeviceAdd from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): MFADeviceAdd {
@@ -34772,9 +35192,10 @@ export namespace events {
     } // MFADeviceAdd
 
     export class MFADeviceDelete {
-        public Metadata: events.Metadata | null;
-        public User: events.UserMetadata | null;
-        public Device: events.MFADeviceMetadata | null;
+        public Metadata: events.Metadata = new events.Metadata();
+        public User: events.UserMetadata = new events.UserMetadata();
+        public Device: events.MFADeviceMetadata =
+            new events.MFADeviceMetadata();
 
         // Decodes MFADeviceDelete from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): MFADeviceDelete {
@@ -34923,8 +35344,8 @@ export namespace events {
     } // MFADeviceDelete
 
     export class BillingInformationUpdate {
-        public Metadata: events.Metadata | null;
-        public User: events.UserMetadata | null;
+        public Metadata: events.Metadata = new events.Metadata();
+        public User: events.UserMetadata = new events.UserMetadata();
 
         // Decodes BillingInformationUpdate from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): BillingInformationUpdate {
@@ -35037,8 +35458,8 @@ export namespace events {
     } // BillingInformationUpdate
 
     export class BillingCardCreate {
-        public Metadata: events.Metadata | null;
-        public User: events.UserMetadata | null;
+        public Metadata: events.Metadata = new events.Metadata();
+        public User: events.UserMetadata = new events.UserMetadata();
 
         // Decodes BillingCardCreate from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): BillingCardCreate {
@@ -35151,8 +35572,8 @@ export namespace events {
     } // BillingCardCreate
 
     export class BillingCardDelete {
-        public Metadata: events.Metadata | null;
-        public User: events.UserMetadata | null;
+        public Metadata: events.Metadata = new events.Metadata();
+        public User: events.UserMetadata = new events.UserMetadata();
 
         // Decodes BillingCardDelete from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): BillingCardDelete {
@@ -35265,9 +35686,10 @@ export namespace events {
     } // BillingCardDelete
 
     export class LockCreate {
-        public Metadata: events.Metadata | null;
-        public Resource: events.ResourceMetadata | null;
-        public User: events.UserMetadata | null;
+        public Metadata: events.Metadata = new events.Metadata();
+        public Resource: events.ResourceMetadata =
+            new events.ResourceMetadata();
+        public User: events.UserMetadata = new events.UserMetadata();
 
         // Decodes LockCreate from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): LockCreate {
@@ -35416,9 +35838,10 @@ export namespace events {
     } // LockCreate
 
     export class LockDelete {
-        public Metadata: events.Metadata | null;
-        public Resource: events.ResourceMetadata | null;
-        public User: events.UserMetadata | null;
+        public Metadata: events.Metadata = new events.Metadata();
+        public Resource: events.ResourceMetadata =
+            new events.ResourceMetadata();
+        public User: events.UserMetadata = new events.UserMetadata();
 
         // Decodes LockDelete from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): LockDelete {
@@ -35567,8 +35990,8 @@ export namespace events {
     } // LockDelete
 
     export class RecoveryCodeGenerate {
-        public Metadata: events.Metadata | null;
-        public User: events.UserMetadata | null;
+        public Metadata: events.Metadata = new events.Metadata();
+        public User: events.UserMetadata = new events.UserMetadata();
 
         // Decodes RecoveryCodeGenerate from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): RecoveryCodeGenerate {
@@ -35681,9 +36104,9 @@ export namespace events {
     } // RecoveryCodeGenerate
 
     export class RecoveryCodeUsed {
-        public Metadata: events.Metadata | null;
-        public User: events.UserMetadata | null;
-        public Status: events.Status | null;
+        public Metadata: events.Metadata = new events.Metadata();
+        public User: events.UserMetadata = new events.UserMetadata();
+        public Status: events.Status = new events.Status();
 
         // Decodes RecoveryCodeUsed from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): RecoveryCodeUsed {
@@ -35831,9 +36254,9 @@ export namespace events {
     } // RecoveryCodeUsed
 
     export class WindowsDesktopSessionEnd {
-        public Metadata: events.Metadata | null;
-        public User: events.UserMetadata | null;
-        public Session: events.SessionMetadata | null;
+        public Metadata: events.Metadata = new events.Metadata();
+        public User: events.UserMetadata = new events.UserMetadata();
+        public Session: events.SessionMetadata = new events.SessionMetadata();
         public WindowsDesktopService: string = "";
         public DesktopAddr: string = "";
         public Domain: string = "";
@@ -38388,7 +38811,8 @@ export namespace events {
     export class StreamStatus {
         public UploadID: string = "";
         public LastEventIndex: i64;
-        public LastUploadTime: google.protobuf.Timestamp | null;
+        public LastUploadTime: google.protobuf.Timestamp =
+            new google.protobuf.Timestamp();
 
         // Decodes StreamStatus from an ArrayBuffer
         static decodeArrayBuffer(buf: ArrayBuffer): StreamStatus {
@@ -38444,7 +38868,10 @@ export namespace events {
                       __proto.Sizer.varint64(this.UploadID.length) +
                       this.UploadID.length
                     : 0;
-            size += 1 + __proto.Sizer.int64(this.LastEventIndex);
+            size +=
+                this.LastEventIndex == 0
+                    ? 0
+                    : 1 + __proto.Sizer.int64(this.LastEventIndex);
 
             if (this.LastUploadTime != null) {
                 const f: google.protobuf.Timestamp = this
@@ -38471,8 +38898,10 @@ export namespace events {
                 encoder.uint32(this.UploadID.length);
                 encoder.string(this.UploadID);
             }
-            encoder.uint32(0x10);
-            encoder.int64(this.LastEventIndex);
+            if (this.LastEventIndex != 0) {
+                encoder.uint32(0x10);
+                encoder.int64(this.LastEventIndex);
+            }
 
             if (this.LastUploadTime != null) {
                 const f = this.LastUploadTime as google.protobuf.Timestamp;
@@ -38491,8 +38920,9 @@ export namespace events {
     } // StreamStatus
 
     export class SessionUpload {
-        public Metadata: events.Metadata | null;
-        public SessionMetadata: events.SessionMetadata | null;
+        public Metadata: events.Metadata = new events.Metadata();
+        public SessionMetadata: events.SessionMetadata =
+            new events.SessionMetadata();
         public UID: string = "";
         public SessionURL: string = "";
 
@@ -38656,7 +39086,7 @@ function __decodeMap_string_google_protobuf_Value(
     );
 
     let key: string = "";
-    let value: google.protobuf.Value | null;
+    let value: google.protobuf.Value = new google.protobuf.Value();
 
     while (!decoder.eof()) {
         const tag = decoder.tag();
@@ -38737,7 +39167,7 @@ function __decodeMap_string_wrappers_StringValues(
     );
 
     let key: string = "";
-    let value: wrappers.StringValues | null;
+    let value: wrappers.StringValues = new wrappers.StringValues();
 
     while (!decoder.eof()) {
         const tag = decoder.tag();
@@ -38860,7 +39290,7 @@ function __decodeMap_string_types_CommandLabelV2(
     );
 
     let key: string = "";
-    let value: types.CommandLabelV2 | null;
+    let value: types.CommandLabelV2 = new types.CommandLabelV2();
 
     while (!decoder.eof()) {
         const tag = decoder.tag();
@@ -38953,7 +39383,7 @@ function __decodeMap_string_types_ThresholdIndexSets(
     );
 
     let key: string = "";
-    let value: types.ThresholdIndexSets | null;
+    let value: types.ThresholdIndexSets = new types.ThresholdIndexSets();
 
     while (!decoder.eof()) {
         const tag = decoder.tag();
@@ -39022,7 +39452,7 @@ function __decodeMap_string_types_PluginDataEntry(
     );
 
     let key: string = "";
-    let value: types.PluginDataEntry | null;
+    let value: types.PluginDataEntry = new types.PluginDataEntry();
 
     while (!decoder.eof()) {
         const tag = decoder.tag();

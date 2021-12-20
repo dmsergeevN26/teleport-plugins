@@ -34,4 +34,4 @@ clean:
 .PHONY: test
 test: build
 	yarn asbuild:test
-	./build/plugin-framework
+	./build/plugin-framework test

@@ -15,13 +15,15 @@ import (
 )
 
 const (
-	CRANELIFT = "cranelift"
-	LLVM      = "llvm"
+	CRANELIFT       = "cranelift"
+	LLVM            = "llvm"
+	protobufAllocFn = "__protobuf_alloc"
+	protobufSetU8Fn = "__protobuf_setu8"
 )
 
 var (
 	interopFnsNames = []string{
-		"__protobuf_alloc", "__protobuf_free", "__protobuf_setu8", "__protobuf_getAddr", "__protobuf_getLength",
+		protobufAllocFn, "__protobuf_free", protobufSetU8Fn, "__protobuf_getAddr", "__protobuf_getLength",
 	}
 
 	// AssemblyScript abort() signature
@@ -74,7 +76,7 @@ type Host struct {
 	interopFns   map[string]wasmer.NativeFunction
 	log          log.FieldLogger
 	test         bool
-	fixtureIndex *FixtureIndex
+	FixtureIndex *FixtureIndex
 }
 
 type Options struct {
@@ -123,7 +125,7 @@ func NewHost(options Options) (*Host, error) {
 		log:          options.Logger,
 		test:         options.Test,
 		interopFns:   make(map[string]wasmer.NativeFunction),
-		fixtureIndex: fixtureIndex,
+		FixtureIndex: fixtureIndex,
 	}, nil
 }
 
@@ -202,7 +204,7 @@ func (i *Host) asSeed(args []wasmer.Value) ([]wasmer.Value, error) {
 func (i *Host) getFixture(args []wasmer.Value) ([]wasmer.Value, error) {
 	n := int(args[0].I32())
 
-	fixture := i.fixtureIndex.Get(n)
+	fixture := i.FixtureIndex.Get(n)
 	if fixture == nil {
 		return []wasmer.Value{wasmer.NewI32(0)}, trace.Errorf("Fixture %v not found", n)
 	}
@@ -219,13 +221,13 @@ func (i *Host) sendProtoMessage(message proto.Message) ([]wasmer.Value, error) {
 		return nil, trace.Wrap(err)
 	}
 
-	handler, err := i.interopFns["__protobuf_alloc"](size)
+	handler, err := i.interopFns[protobufAllocFn](size)
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
 
 	for n := 0; n < size; n++ {
-		_, err := i.interopFns["__protobuf_setu8"](handler, n, bytes[n])
+		_, err := i.interopFns[protobufSetU8Fn](handler, n, bytes[n])
 		if err != nil {
 			return nil, trace.Wrap(err)
 		}
