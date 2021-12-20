@@ -110,12 +110,26 @@ type LockConfig struct {
 	LockFor time.Duration `help:"Time period for which user gets lock" name:"lock-for" env:"FDFWD_LOCKING_FOR"`
 }
 
+type WASMConfig struct {
+	// WASMTimeout represents WASM method timeout
+	WASMTimeout time.Duration `help:"WASM method timeout" default:"1s" env:"WASM_TIMEOUT"`
+	// WASMConcurrency represents WASM method execution concurrency
+	WASMConcurrency int `help:"WASM method execution concurrency" default:"4" env:"WASM_CONCURRENCY"`
+	// WASMHandleEventFn is the handle event method name
+	WASMHandleEventFn string `help:"WASM method name for handleEvent function, if any"`
+	// WASMHandleSessionEventFn is the handle session event method name
+	WASMHandleSessionEventFn string `help:"WASM method name for handleSessionEvent function, if any"`
+	// WASMPluginName is the WASM plugin file name
+	WASMPluginName string `help:"WASM plugin binary file name"`
+}
+
 // StartCmdConfig is start command description
 type StartCmdConfig struct {
 	FluentdConfig
 	TeleportConfig
 	IngestConfig
 	LockConfig
+	WASMConfig
 }
 
 // ConfigureCmdConfig holds CLI options for teleport-event-handler configure
