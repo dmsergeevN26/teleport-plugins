@@ -1,6 +1,12 @@
 import { events } from './vendor/teleport';
 import { google } from './vendor/teleport';
-export { __protobuf_alloc, __protobuf_free, __protobuf_getAddr, __protobuf_getLength, __protobuf_setu8 } from './vendor/teleport';
+export {
+    __protobuf_alloc,
+    __protobuf_free,
+    __protobuf_getAddr,
+    __protobuf_getLength,
+    __protobuf_setu8
+} from './vendor/teleport';
 
 type Event = events.OneOf;
 

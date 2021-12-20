@@ -15,15 +15,18 @@ import (
 )
 
 const (
-	CRANELIFT       = "cranelift"
-	LLVM            = "llvm"
-	protobufAllocFn = "__protobuf_alloc"
-	protobufSetU8Fn = "__protobuf_setu8"
+	CRANELIFT           = "cranelift"
+	LLVM                = "llvm"
+	protobufAllocFn     = "__protobuf_alloc"
+	protobufFreeFn      = "__protobuf_free"
+	protobufSetU8Fn     = "__protobuf_setu8"
+	protobufGetAddrFn   = "__protobuf_getAddr"
+	protobufGetLengthFn = "__protobuf_getLength"
 )
 
 var (
 	interopFnsNames = []string{
-		protobufAllocFn, "__protobuf_free", protobufSetU8Fn, "__protobuf_getAddr", "__protobuf_getLength",
+		protobufAllocFn, protobufFreeFn, protobufSetU8Fn, protobufGetAddrFn, protobufGetLengthFn,
 	}
 
 	// AssemblyScript abort() signature
@@ -66,6 +69,7 @@ var (
 	)
 )
 
+// Host represents wasmer instance which executes plugin functions
 type Host struct {
 	engine       *wasmer.Engine
 	store        *wasmer.Store
@@ -79,13 +83,19 @@ type Host struct {
 	FixtureIndex *FixtureIndex
 }
 
+// Options represents wasmer host options
 type Options struct {
-	Compiler   string
-	Logger     log.FieldLogger
-	Test       bool
+	// Compiler represents name of the protobuf compiler
+	Compiler string
+	// Logger represents the instance of a logger used in notice(), abort(), etc.
+	Logger log.FieldLogger
+	// Test represents the flag which indicates test mode. When true, getFixture() is exported to the WASM side.
+	Test bool
+	// FixtureDir represents the directory with test fixtures.
 	FixtureDir string
 }
 
+// AsConfig returns wasmer-go config
 func (o Options) AsConfig() (*wasmer.Config, error) {
 	c := wasmer.NewConfig()
 
@@ -101,6 +111,7 @@ func (o Options) AsConfig() (*wasmer.Config, error) {
 	return c, nil
 }
 
+// NewHost initializes Host structure
 func NewHost(options Options) (*Host, error) {
 	config, err := options.AsConfig()
 	if err != nil {
@@ -212,7 +223,6 @@ func (i *Host) getFixture(args []wasmer.Value) ([]wasmer.Value, error) {
 	return i.sendProtoMessage(fixture)
 }
 
-// TODO: make fn names constants
 // sendProtoMessage sends proto.Message to the AS side
 func (i *Host) sendProtoMessage(message proto.Message) ([]wasmer.Value, error) {
 	size := proto.Size(message)
@@ -236,7 +246,7 @@ func (i *Host) sendProtoMessage(message proto.Message) ([]wasmer.Value, error) {
 	return []wasmer.Value{wasmer.NewI32(handler)}, nil
 }
 
-// LoadPlugin loads plugin from a wasm file and ensures that all exports required exports are present
+// LoadPlugin loads plugin from a wasm file and ensures that all required exports are present
 func (i *Host) LoadPlugin(b []byte) error {
 	var err error
 
@@ -278,6 +288,7 @@ func (i *Host) LoadPlugin(b []byte) error {
 	return nil
 }
 
+// Test runs test() function
 func (i *Host) Test() error {
 	fn, err := i.instance.Exports.GetFunction("test")
 	if err != nil {
