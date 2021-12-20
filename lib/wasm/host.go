@@ -2,6 +2,7 @@ package wasm
 
 import (
 	"bytes"
+	"context"
 	"encoding/binary"
 	"fmt"
 	"strings"
@@ -12,6 +13,7 @@ import (
 	"github.com/gravitational/trace"
 	log "github.com/sirupsen/logrus"
 	wasmer "github.com/wasmerio/wasmer-go/wasmer"
+	"golang.org/x/sync/semaphore"
 )
 
 const (
@@ -78,9 +80,13 @@ type Host struct {
 	instance     *wasmer.Instance
 	memory       *wasmer.Memory
 	interopFns   map[string]wasmer.NativeFunction
+	fnNames      []string
+	fns          map[string]wasmer.NativeFunction
 	log          log.FieldLogger
 	test         bool
 	FixtureIndex *FixtureIndex
+	timeout      time.Duration
+	semaphore    *semaphore.Weighted
 }
 
 // Options represents wasmer host options
@@ -93,6 +99,12 @@ type Options struct {
 	Test bool
 	// FixtureDir represents the directory with test fixtures.
 	FixtureDir string
+	// FunctionNames represents an array of the function names which must present in the module and will be executed by the host.
+	FunctionNames []string
+	// Timeout represents maximum method execution time, 1 second by default
+	Timeout time.Duration
+	// Concurrency represents maximum number of wasm methods executed concurrently
+	Concurrency int
 }
 
 // AsConfig returns wasmer-go config
@@ -136,7 +148,11 @@ func NewHost(options Options) (*Host, error) {
 		log:          options.Logger,
 		test:         options.Test,
 		interopFns:   make(map[string]wasmer.NativeFunction),
+		fnNames:      options.FunctionNames,
+		fns:          make(map[string]wasmer.NativeFunction),
 		FixtureIndex: fixtureIndex,
+		semaphore:    semaphore.NewWeighted(int64(options.Concurrency)),
+		timeout:      options.Timeout,
 	}, nil
 }
 
@@ -220,11 +236,11 @@ func (i *Host) getFixture(args []wasmer.Value) ([]wasmer.Value, error) {
 		return []wasmer.Value{wasmer.NewI32(0)}, trace.Errorf("Fixture %v not found", n)
 	}
 
-	return i.sendProtoMessage(fixture)
+	return i.SendProtoMessage(fixture)
 }
 
-// sendProtoMessage sends proto.Message to the AS side
-func (i *Host) sendProtoMessage(message proto.Message) ([]wasmer.Value, error) {
+// SendProtoMessage allocates memory and copies proto.Message to the AS side, returns numeric handler
+func (i *Host) SendProtoMessage(message proto.Message) ([]wasmer.Value, error) {
 	size := proto.Size(message)
 	bytes, err := proto.Marshal(message)
 	if err != nil {
@@ -280,6 +296,13 @@ func (i *Host) LoadPlugin(b []byte) error {
 		}
 	}
 
+	for _, name := range i.fnNames {
+		i.fns[name], err = i.instance.Exports.GetFunction(name)
+		if err != nil {
+			return trace.Wrap(err)
+		}
+	}
+
 	i.memory, err = i.instance.Exports.GetMemory("memory")
 	if err != nil {
 		return trace.Wrap(err)
@@ -301,4 +324,39 @@ func (i *Host) Test() error {
 	}
 
 	return nil
+}
+
+// Execute executes WASM function within
+func (i *Host) Execute(ctx context.Context, name string, args []wasmer.Value) (interface{}, error) {
+	err := i.semaphore.Acquire(ctx, 1)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+
+	var ch chan interface{} = make(chan interface{})
+	var e chan error = make(chan error)
+
+	go func() {
+		r, err := i.fns[name](args)
+		if err != nil {
+			e <- err
+			return
+		}
+		ch <- r
+	}()
+
+	select {
+	case err := <-e:
+		i.semaphore.Release(1)
+		return nil, trace.Wrap(err)
+	case r := <-ch:
+		i.semaphore.Release(1)
+		return r, nil
+	case <-time.After(i.timeout):
+		i.semaphore.Release(1)
+		return nil, trace.LimitExceeded("WASM method %v execution timeout", name)
+	case <-ctx.Done():
+		i.semaphore.Release(1)
+		return nil, trace.Wrap(ctx.Err())
+	}
 }
