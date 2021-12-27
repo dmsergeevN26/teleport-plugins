@@ -12,10 +12,9 @@ type f32 = number;
 type f64 = number;
 type bool = boolean | number;
 export function __protobuf_alloc(length: i32): usize;
-export function __protobuf_setu8(data: usize, offset: i32, value: u8): void;
-export function __protobuf_free(data: usize): void;
-export function __protobuf_getLength(data: usize): u32;
-export function __protobuf_getAddr(data: usize): usize;
+export function __protobuf_free(view: usize): void;
+export function __protobuf_getLength(view: usize): u32;
+export function __protobuf_getAddr(view: usize): usize;
 export namespace google {
   export namespace protobuf {
     export class Timestamp {
@@ -26,6 +25,7 @@ export namespace google {
       seconds: i64;
       nanos: i32;
       size(): u32;
+      encodeDataView(): usize;
       encode(encoder?: usize): usize;
       constructor();
     }
@@ -39,6 +39,7 @@ export namespace google {
       static decode(view: usize): usize;
       fields: usize;
       size(): u32;
+      encodeDataView(): usize;
       encode(encoder?: usize): usize;
       constructor();
     }
@@ -54,6 +55,7 @@ export namespace google {
       struct_value: usize;
       list_value: usize;
       size(): u32;
+      encodeDataView(): usize;
       encode(encoder?: usize): usize;
       constructor();
     }
@@ -64,6 +66,7 @@ export namespace google {
       static decode(view: usize): usize;
       values: usize;
       size(): u32;
+      encodeDataView(): usize;
       encode(encoder?: usize): usize;
       constructor();
     }
@@ -77,6 +80,7 @@ export namespace wrappers {
     static decode(view: usize): usize;
     Values: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -87,6 +91,7 @@ export namespace wrappers {
     static decode(view: usize): usize;
     Values: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -127,6 +132,7 @@ export namespace types {
     Type: u32;
     HostID: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -149,6 +155,7 @@ export namespace types {
     Expires: usize;
     ID: i64;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -166,6 +173,7 @@ export namespace types {
     LastRotated: usize;
     Schedule: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -178,6 +186,7 @@ export namespace types {
     UpdateServers: usize;
     Standby: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -191,6 +200,7 @@ export namespace types {
     Version: usize;
     Metadata: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -205,6 +215,7 @@ export namespace types {
     Metadata: usize;
     Spec: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -226,6 +237,7 @@ export namespace types {
     GCP: usize;
     Database: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -236,6 +248,7 @@ export namespace types {
     static decode(view: usize): usize;
     Databases: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -251,6 +264,7 @@ export namespace types {
     Spec: usize;
     Status: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -266,6 +280,7 @@ export namespace types {
     AWS: usize;
     GCP: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -277,6 +292,7 @@ export namespace types {
     CACert: usize;
     AWS: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -290,6 +306,7 @@ export namespace types {
     RDS: usize;
     AccountID: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -300,6 +317,7 @@ export namespace types {
     static decode(view: usize): usize;
     ClusterID: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -313,6 +331,7 @@ export namespace types {
     ResourceID: usize;
     IAMAuth: bool;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -324,6 +343,7 @@ export namespace types {
     ProjectID: usize;
     InstanceID: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -338,6 +358,7 @@ export namespace types {
     Metadata: usize;
     Spec: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -348,6 +369,7 @@ export namespace types {
     static decode(view: usize): usize;
     Servers: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -366,6 +388,7 @@ export namespace types {
     Apps: usize;
     KubernetesClusters: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -380,6 +403,7 @@ export namespace types {
     Metadata: usize;
     Spec: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -394,6 +418,7 @@ export namespace types {
     Rotation: usize;
     App: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -404,6 +429,7 @@ export namespace types {
     static decode(view: usize): usize;
     Apps: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -418,6 +444,7 @@ export namespace types {
     Metadata: usize;
     Spec: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -432,6 +459,7 @@ export namespace types {
     InsecureSkipVerify: bool;
     Rewrite: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -449,6 +477,7 @@ export namespace types {
     Rewrite: usize;
     Description: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -460,6 +489,7 @@ export namespace types {
     Redirect: usize;
     Headers: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -471,6 +501,7 @@ export namespace types {
     Name: usize;
     Value: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -483,6 +514,7 @@ export namespace types {
     Command: usize;
     Result: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -495,6 +527,7 @@ export namespace types {
     PrivateKey: usize;
     PrivateKeyType: u32;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -507,6 +540,7 @@ export namespace types {
     Key: usize;
     KeyType: u32;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -519,6 +553,7 @@ export namespace types {
     PrivateKey: usize;
     PrivateKeyType: u32;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -533,6 +568,7 @@ export namespace types {
     Metadata: usize;
     Spec: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -554,6 +590,7 @@ export namespace types {
     ActiveKeys: usize;
     AdditionalTrustedKeys: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -572,6 +609,7 @@ export namespace types {
     TLS: usize;
     JWT: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -583,6 +621,7 @@ export namespace types {
     Remote: usize;
     Local: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -595,6 +634,7 @@ export namespace types {
     Expires: usize;
     Token: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -609,6 +649,7 @@ export namespace types {
     Metadata: usize;
     Spec: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -619,6 +660,7 @@ export namespace types {
     static decode(view: usize): usize;
     ProvisionTokens: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -631,6 +673,7 @@ export namespace types {
     AWSRegions: usize;
     AWSRole: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -643,6 +686,7 @@ export namespace types {
     allow: usize;
     AWSIIDTTL: i64;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -657,6 +701,7 @@ export namespace types {
     Metadata: usize;
     Spec: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -667,6 +712,7 @@ export namespace types {
     static decode(view: usize): usize;
     StaticTokens: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -681,6 +727,7 @@ export namespace types {
     Metadata: usize;
     Spec: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -692,6 +739,7 @@ export namespace types {
     ClusterName: usize;
     ClusterID: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -706,6 +754,7 @@ export namespace types {
     Metadata: usize;
     Spec: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -727,6 +776,7 @@ export namespace types {
     WriteMinCapacity: i64;
     WriteTargetValue: f64;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -741,6 +791,7 @@ export namespace types {
     Metadata: usize;
     Spec: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -758,6 +809,7 @@ export namespace types {
     ProxyListenerMode: u32;
     RoutingStrategy: u32;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -772,6 +824,7 @@ export namespace types {
     Metadata: usize;
     Spec: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -783,6 +836,7 @@ export namespace types {
     Mode: usize;
     ProxyChecksHostKeys: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -797,6 +851,7 @@ export namespace types {
     Metadata: usize;
     Spec: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -816,6 +871,7 @@ export namespace types {
     LockingMode: usize;
     Webauthn: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -828,6 +884,7 @@ export namespace types {
     Facets: usize;
     DeviceAttestationCAs: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -841,6 +898,7 @@ export namespace types {
     AttestationDeniedCAs: usize;
     Disabled: bool;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -855,6 +913,7 @@ export namespace types {
     Metadata: usize;
     Spec: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -864,6 +923,7 @@ export namespace types {
     static decodeArrayBuffer(buf: usize): usize;
     static decode(view: usize): usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -878,6 +938,7 @@ export namespace types {
     Metadata: usize;
     Spec: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -891,6 +952,7 @@ export namespace types {
     Usage: u32;
     Created: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -905,6 +967,7 @@ export namespace types {
     Metadata: usize;
     Spec: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -917,6 +980,7 @@ export namespace types {
     QRCode: usize;
     Created: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -931,6 +995,7 @@ export namespace types {
     Metadata: usize;
     Spec: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -944,6 +1009,7 @@ export namespace types {
     Approve: u32;
     Deny: u32;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -960,6 +1026,7 @@ export namespace types {
     Annotations: usize;
     ThresholdIndexes: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -971,6 +1038,7 @@ export namespace types {
     RequestID: usize;
     Review: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -981,6 +1049,7 @@ export namespace types {
     static decode(view: usize): usize;
     Indexes: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -991,6 +1060,7 @@ export namespace types {
     static decode(view: usize): usize;
     Sets: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1013,6 +1083,7 @@ export namespace types {
     Reviews: usize;
     SuggestedReviewers: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1025,6 +1096,7 @@ export namespace types {
     User: usize;
     State: u32;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1036,6 +1108,7 @@ export namespace types {
     RequestableRoles: usize;
     SuggestedReviewers: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1048,6 +1121,7 @@ export namespace types {
     RequestableRoles: bool;
     SuggestedReviewers: bool;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1062,6 +1136,7 @@ export namespace types {
     Metadata: usize;
     Spec: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1072,6 +1147,7 @@ export namespace types {
     static decode(view: usize): usize;
     Data: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1082,6 +1158,7 @@ export namespace types {
     static decode(view: usize): usize;
     Entries: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1094,6 +1171,7 @@ export namespace types {
     Resource: usize;
     Plugin: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1108,6 +1186,7 @@ export namespace types {
     Set: usize;
     Expect: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1122,6 +1201,7 @@ export namespace types {
     Metadata: usize;
     Spec: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1134,6 +1214,7 @@ export namespace types {
     Allow: usize;
     Deny: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1157,6 +1238,7 @@ export namespace types {
     RequireSessionMFA: bool;
     Lock: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1184,6 +1266,7 @@ export namespace types {
     WindowsDesktopLogins: usize;
     WindowsDesktopLabels: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1198,6 +1281,7 @@ export namespace types {
     Thresholds: usize;
     SuggestedReviewers: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1210,6 +1294,7 @@ export namespace types {
     ClaimsToRoles: usize;
     Where: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1222,6 +1307,7 @@ export namespace types {
     Value: usize;
     Roles: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1235,6 +1321,7 @@ export namespace types {
     Where: usize;
     Actions: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1247,6 +1334,7 @@ export namespace types {
     Roles: usize;
     Where: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1257,6 +1345,7 @@ export namespace types {
     static decode(view: usize): usize;
     Value: bool;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1271,6 +1360,7 @@ export namespace types {
     Metadata: usize;
     Spec: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1289,6 +1379,7 @@ export namespace types {
     CreatedBy: usize;
     LocalAuth: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1300,6 +1391,7 @@ export namespace types {
     ConnectorID: usize;
     Username: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1314,6 +1406,7 @@ export namespace types {
     LockExpires: usize;
     RecoveryAttemptLockExpires: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1326,6 +1419,7 @@ export namespace types {
     Time: usize;
     User: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1338,6 +1432,7 @@ export namespace types {
     KeyHandle: usize;
     PubKey: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1353,6 +1448,7 @@ export namespace types {
     MFA: usize;
     Webauthn: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1372,6 +1468,7 @@ export namespace types {
     u2f: usize;
     webauthn: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1382,6 +1479,7 @@ export namespace types {
     static decode(view: usize): usize;
     key: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1394,6 +1492,7 @@ export namespace types {
     pub_key: usize;
     counter: u32;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1408,6 +1507,7 @@ export namespace types {
     aaguid: usize;
     signature_counter: u32;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1418,6 +1518,7 @@ export namespace types {
     static decode(view: usize): usize;
     UserID: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1430,6 +1531,7 @@ export namespace types {
     ID: usize;
     Identity: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1440,6 +1542,7 @@ export namespace types {
     static decode(view: usize): usize;
     Name: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1454,6 +1557,7 @@ export namespace types {
     Metadata: usize;
     Spec: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1466,6 +1570,7 @@ export namespace types {
     DialAddrs: usize;
     Type: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1480,6 +1585,7 @@ export namespace types {
     Metadata: usize;
     Spec: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1493,6 +1599,7 @@ export namespace types {
     LastHeartbeat: usize;
     Type: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1504,6 +1611,7 @@ export namespace types {
     SemaphoreKind: usize;
     SemaphoreName: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1518,6 +1626,7 @@ export namespace types {
     Expires: usize;
     Holder: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1531,6 +1640,7 @@ export namespace types {
     LeaseID: usize;
     Expires: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1543,6 +1653,7 @@ export namespace types {
     Expires: usize;
     Holder: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1557,6 +1668,7 @@ export namespace types {
     Metadata: usize;
     Spec: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1567,6 +1679,7 @@ export namespace types {
     static decode(view: usize): usize;
     Leases: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1581,6 +1694,7 @@ export namespace types {
     Metadata: usize;
     Spec: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1599,6 +1713,7 @@ export namespace types {
     LoginTime: usize;
     IdleTimeout: i64;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1609,6 +1724,7 @@ export namespace types {
     static decode(view: usize): usize;
     User: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1623,6 +1739,7 @@ export namespace types {
     Metadata: usize;
     Status: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1634,6 +1751,7 @@ export namespace types {
     Connection: usize;
     LastHeartbeat: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1646,6 +1764,7 @@ export namespace types {
     StaticLabels: usize;
     DynamicLabels: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1660,6 +1779,7 @@ export namespace types {
     Metadata: usize;
     Spec: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1670,6 +1790,7 @@ export namespace types {
     static decode(view: usize): usize;
     DynamicLabels: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1684,6 +1805,7 @@ export namespace types {
     Metadata: usize;
     Spec: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1695,6 +1817,7 @@ export namespace types {
     User: usize;
     Token: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1706,6 +1829,7 @@ export namespace types {
     User: usize;
     SessionID: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1717,6 +1841,7 @@ export namespace types {
     User: usize;
     SessionID: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1728,6 +1853,7 @@ export namespace types {
     User: usize;
     Token: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1739,6 +1865,7 @@ export namespace types {
     User: usize;
     Token: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1749,6 +1876,7 @@ export namespace types {
     static decode(view: usize): usize;
     Name: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1760,6 +1888,7 @@ export namespace types {
     Name: usize;
     WithSecrets: bool;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1770,6 +1899,7 @@ export namespace types {
     static decode(view: usize): usize;
     WithSecrets: bool;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1781,6 +1911,7 @@ export namespace types {
     Name: usize;
     Namespace: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1791,6 +1922,7 @@ export namespace types {
     static decode(view: usize): usize;
     Namespace: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1805,6 +1937,7 @@ export namespace types {
     Metadata: usize;
     Spec: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1815,6 +1948,7 @@ export namespace types {
     static decode(view: usize): usize;
     OIDCConnectors: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1837,6 +1971,7 @@ export namespace types {
     GoogleServiceAccount: usize;
     GoogleAdminEmail: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1851,6 +1986,7 @@ export namespace types {
     Metadata: usize;
     Spec: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1861,6 +1997,7 @@ export namespace types {
     static decode(view: usize): usize;
     SAMLConnectors: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1883,6 +2020,7 @@ export namespace types {
     Provider: usize;
     EncryptionKeyPair: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1895,6 +2033,7 @@ export namespace types {
     Value: usize;
     Roles: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1906,6 +2045,7 @@ export namespace types {
     PrivateKey: usize;
     Cert: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1920,6 +2060,7 @@ export namespace types {
     Metadata: usize;
     Spec: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1930,6 +2071,7 @@ export namespace types {
     static decode(view: usize): usize;
     GithubConnectors: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1944,6 +2086,7 @@ export namespace types {
     TeamsToLogins: usize;
     Display: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1958,6 +2101,7 @@ export namespace types {
     KubeGroups: usize;
     KubeUsers: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1972,6 +2116,7 @@ export namespace types {
     Metadata: usize;
     Spec: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1982,6 +2127,7 @@ export namespace types {
     static decode(view: usize): usize;
     TrustedClusters: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -1997,6 +2143,7 @@ export namespace types {
     ReverseTunnelAddress: usize;
     RoleMap: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2011,6 +2158,7 @@ export namespace types {
     Metadata: usize;
     Spec: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2023,6 +2171,7 @@ export namespace types {
     Message: usize;
     Expires: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2037,6 +2186,7 @@ export namespace types {
     Node: usize;
     MFADevice: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2047,6 +2197,7 @@ export namespace types {
     static decode(view: usize): usize;
     CIDR: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2058,6 +2209,7 @@ export namespace types {
     Allow: usize;
     Deny: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2072,6 +2224,7 @@ export namespace types {
     Metadata: usize;
     Spec: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2083,6 +2236,7 @@ export namespace types {
     Header: usize;
     Spec: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2094,6 +2248,7 @@ export namespace types {
     Addr: usize;
     TeleportVersion: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2105,6 +2260,7 @@ export namespace types {
     Header: usize;
     Spec: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2116,6 +2272,7 @@ export namespace types {
     Addr: usize;
     Domain: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2135,6 +2292,7 @@ export namespace types {
     RemoteAddr: usize;
     EC2IdentityDocument: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2149,6 +2307,7 @@ export namespace types {
     Metadata: usize;
     Spec: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2160,6 +2319,7 @@ export namespace types {
     Codes: usize;
     Created: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2171,6 +2331,7 @@ export namespace types {
     HashedCode: usize;
     IsUsed: bool;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2192,6 +2353,7 @@ export namespace events {
     Time: usize;
     ClusterName: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2203,6 +2365,7 @@ export namespace events {
     SessionID: usize;
     WithMFA: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2216,6 +2379,7 @@ export namespace events {
     Impersonator: usize;
     AWSRoleARN: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2230,6 +2394,7 @@ export namespace events {
     ServerAddr: usize;
     ServerLabels: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2242,6 +2407,7 @@ export namespace events {
     RemoteAddr: usize;
     Protocol: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2254,6 +2420,7 @@ export namespace events {
     KubernetesUsers: usize;
     KubernetesGroups: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2268,6 +2435,7 @@ export namespace events {
     KubernetesContainerImage: usize;
     KubernetesNodeName: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2288,6 +2456,7 @@ export namespace events {
     SessionRecording: usize;
     AccessRequests: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2303,6 +2472,7 @@ export namespace events {
     Connection: usize;
     KubernetesCluster: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2318,6 +2488,7 @@ export namespace events {
     DelayMilliseconds: i64;
     Offset: i64;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2333,6 +2504,7 @@ export namespace events {
     Reason: usize;
     Maximum: i64;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2350,6 +2522,7 @@ export namespace events {
     KubernetesCluster: usize;
     KubernetesPod: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2373,6 +2546,7 @@ export namespace events {
     InitialCommand: usize;
     SessionRecording: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2385,6 +2559,7 @@ export namespace events {
     CgroupID: u64;
     Program: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2397,6 +2572,7 @@ export namespace events {
     Error: usize;
     UserMessage: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2415,6 +2591,7 @@ export namespace events {
     Argv: usize;
     ReturnCode: i32;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2432,6 +2609,7 @@ export namespace events {
     Flags: i32;
     ReturnCode: i32;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2452,6 +2630,7 @@ export namespace events {
     Operation: u32;
     Action: u32;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2472,6 +2651,7 @@ export namespace events {
     BytesTransmitted: u64;
     BytesReceived: u64;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2486,6 +2666,7 @@ export namespace events {
     Server: usize;
     Connection: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2501,6 +2682,7 @@ export namespace events {
     IdentityAttributes: usize;
     MFADevice: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2514,6 +2696,7 @@ export namespace events {
     UpdatedBy: usize;
     TTL: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2528,6 +2711,7 @@ export namespace events {
     Roles: usize;
     Connector: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2540,6 +2724,7 @@ export namespace events {
     User: usize;
     Resource: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2551,6 +2736,7 @@ export namespace events {
     Metadata: usize;
     User: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2571,6 +2757,7 @@ export namespace events {
     Reviewer: usize;
     ProposedState: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2585,6 +2772,7 @@ export namespace events {
     Status: usize;
     Addr: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2598,6 +2786,7 @@ export namespace events {
     Connection: usize;
     Status: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2610,6 +2799,7 @@ export namespace events {
     ExitCode: usize;
     Error: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2627,6 +2817,7 @@ export namespace events {
     KubernetesCluster: usize;
     KubernetesPod: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2644,6 +2835,7 @@ export namespace events {
     Path: usize;
     Action: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2658,6 +2850,7 @@ export namespace events {
     Name: usize;
     Error: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2672,6 +2865,7 @@ export namespace events {
     Server: usize;
     Reason: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2685,6 +2879,7 @@ export namespace events {
     Connection: usize;
     Status: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2697,6 +2892,7 @@ export namespace events {
     Resource: usize;
     User: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2709,6 +2905,7 @@ export namespace events {
     Resource: usize;
     User: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2721,6 +2918,7 @@ export namespace events {
     Resource: usize;
     User: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2733,6 +2931,7 @@ export namespace events {
     Resource: usize;
     User: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2745,6 +2944,7 @@ export namespace events {
     Resource: usize;
     User: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2757,6 +2957,7 @@ export namespace events {
     Resource: usize;
     User: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2769,6 +2970,7 @@ export namespace events {
     Resource: usize;
     User: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2781,6 +2983,7 @@ export namespace events {
     Resource: usize;
     User: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2793,6 +2996,7 @@ export namespace events {
     Resource: usize;
     User: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2805,6 +3009,7 @@ export namespace events {
     Resource: usize;
     User: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2817,6 +3022,7 @@ export namespace events {
     Resource: usize;
     User: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2829,6 +3035,7 @@ export namespace events {
     Resource: usize;
     User: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2850,6 +3057,7 @@ export namespace events {
     ResponseCode: i32;
     Kubernetes: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2862,6 +3070,7 @@ export namespace events {
     AppPublicAddr: usize;
     AppLabels: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2875,6 +3084,7 @@ export namespace events {
     Resource: usize;
     App: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2888,6 +3098,7 @@ export namespace events {
     Resource: usize;
     App: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2900,6 +3111,7 @@ export namespace events {
     User: usize;
     Resource: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2915,6 +3127,7 @@ export namespace events {
     Connection: usize;
     PublicAddr: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2930,6 +3143,7 @@ export namespace events {
     Connection: usize;
     SessionChunkID: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2944,6 +3158,7 @@ export namespace events {
     RawQuery: usize;
     Method: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2963,6 +3178,7 @@ export namespace events {
     DatabaseGCPProjectID: usize;
     DatabaseGCPInstanceID: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2976,6 +3192,7 @@ export namespace events {
     Resource: usize;
     Database: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -2989,6 +3206,7 @@ export namespace events {
     Resource: usize;
     Database: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -3001,6 +3219,7 @@ export namespace events {
     User: usize;
     Resource: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -3017,6 +3236,7 @@ export namespace events {
     Status: usize;
     Database: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -3033,6 +3253,7 @@ export namespace events {
     DatabaseQueryParameters: usize;
     Status: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -3052,6 +3273,7 @@ export namespace events {
     WindowsUser: usize;
     DesktopLabels: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -3065,6 +3287,7 @@ export namespace events {
     Session: usize;
     Database: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -3077,6 +3300,7 @@ export namespace events {
     DeviceID: usize;
     DeviceType: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -3089,6 +3313,7 @@ export namespace events {
     User: usize;
     Device: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -3101,6 +3326,7 @@ export namespace events {
     User: usize;
     Device: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -3112,6 +3338,7 @@ export namespace events {
     Metadata: usize;
     User: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -3123,6 +3350,7 @@ export namespace events {
     Metadata: usize;
     User: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -3134,6 +3362,7 @@ export namespace events {
     Metadata: usize;
     User: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -3146,6 +3375,7 @@ export namespace events {
     Resource: usize;
     User: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -3158,6 +3388,7 @@ export namespace events {
     Resource: usize;
     User: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -3169,6 +3400,7 @@ export namespace events {
     Metadata: usize;
     User: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -3181,6 +3413,7 @@ export namespace events {
     User: usize;
     Status: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -3198,6 +3431,7 @@ export namespace events {
     WindowsUser: usize;
     DesktopLabels: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -3267,6 +3501,7 @@ export namespace events {
     WindowsDesktopSessionStart: usize;
     WindowsDesktopSessionEnd: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -3279,6 +3514,7 @@ export namespace events {
     LastEventIndex: i64;
     LastUploadTime: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }
@@ -3292,6 +3528,7 @@ export namespace events {
     UID: usize;
     SessionURL: usize;
     size(): u32;
+    encodeDataView(): usize;
     encode(encoder?: usize): usize;
     constructor();
   }

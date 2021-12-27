@@ -37,7 +37,7 @@ const (
 
 // TeleportEvent represents helper struct around main audit log event
 type TeleportEvent struct {
-	// event is the event
+	// Event is the event
 	Event interface{}
 	// cursor is the event ID (real/generated when empty)
 	ID string

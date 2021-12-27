@@ -310,6 +310,7 @@ github.com/sethvargo/go-limiter/memorystore
 # github.com/sirupsen/logrus v1.8.1-0.20210219125412-f104497f2b21
 ## explicit
 github.com/sirupsen/logrus
+github.com/sirupsen/logrus/hooks/test
 # github.com/stretchr/testify v1.7.0
 ## explicit
 github.com/stretchr/testify/assert

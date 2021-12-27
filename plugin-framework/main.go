@@ -1,13 +1,20 @@
 package main
 
 import (
+	"context"
 	"os"
+	"time"
 
 	"github.com/gravitational/kingpin"
 	"github.com/gravitational/teleport-plugins/lib/logger"
 	"github.com/gravitational/teleport-plugins/lib/wasm"
 	_ "github.com/gravitational/teleport/api/types"
 	"github.com/sirupsen/logrus"
+)
+
+const (
+	defaultConcurrency = 4
+	defaultTimeout     = time.Second * 30
 )
 
 var (
@@ -19,7 +26,7 @@ var (
 	fixtureName     = fixture.Arg("name", "Fixture name").Required().String()
 )
 
-func runTest(host *wasm.Host, log logrus.FieldLogger) {
+func runTest(host *wasm.Host, testRunner *wasm.TestRunner, log logrus.FieldLogger) {
 	b, err := os.ReadFile("build/test.wasm")
 	if err != nil {
 		log.Fatal(err)
@@ -30,14 +37,14 @@ func runTest(host *wasm.Host, log logrus.FieldLogger) {
 		log.Fatal(err)
 	}
 
-	err = host.Test()
+	err = testRunner.Run(context.Background())
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
-func genFixture(host *wasm.Host, log logrus.FieldLogger, template string, name string) {
-	err := host.FixtureIndex.Add(template, name)
+func genFixture(testRunner *wasm.TestRunner, log logrus.FieldLogger, template string, name string) {
+	err := testRunner.FixtureIndex.Add(template, name)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -48,22 +55,29 @@ func main() {
 	logger.Init()
 	log := logger.Standard()
 
-	host, err := wasm.NewHost(wasm.Options{
-		Compiler:   wasm.CRANELIFT,
-		Logger:     log,
-		Test:       true,
-		FixtureDir: "fixtures",
-	})
+	host := wasm.NewHost(context.Background(), defaultTimeout, defaultConcurrency)
 
+	testRunner, err := wasm.NewTestRunner(host, "fixtures")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = host.RegisterModule(testRunner)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	env := wasm.NewAssemblyScriptEnv(host, log)
+	err = host.RegisterModule(env)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	switch kingpin.MustParse(app.Parse(os.Args[1:])) {
 	case test.FullCommand():
-		runTest(host, log)
+		runTest(host, testRunner, log)
 	case fixture.FullCommand():
-		genFixture(host, log, *fixtureTemplate, *fixtureName)
+		genFixture(testRunner, log, *fixtureTemplate, *fixtureName)
 	}
 
 }

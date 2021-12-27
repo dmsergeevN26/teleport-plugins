@@ -130,3 +130,14 @@ update-tag:
 lint: GO_LINT_FLAGS ?=
 lint:
 	golangci-lint run -c .golangci.yml $(GO_LINT_FLAGS)
+
+# Downloads and compiles custom wasmer runtime, copies it to vendor directory. Required for local development on Mac M1.
+# Remove once M1 wasmer binaries are added to wasmer-go itself.
+.PHONY: get-custom-wasmer-runtime
+get-custom-wasmer-runtime:
+	git clone git@github.com:wasmerio/wasmer-go.git && \
+	cd wasmer-go && \
+	cargo build --release && \
+	cd .. && \
+	cp -R wasmer-go/wasmer/packaged/lib/darwin-aarch64 vendor/github.com/wasmerio/wasmer-go/wasmer/packaged/lib/ && \
+	rm -rf wasmer-go

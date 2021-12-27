@@ -1,14 +1,13 @@
-import { getFixture, arrayToDataView } from './vendor/test';
+import { getFixture, arrayToDataView } from '../vendor/test';
 import { handleEvent } from '.';
-import { events } from './vendor/teleport';
+import { events } from '../vendor/teleport';
 
 export { 
     __protobuf_alloc,
     __protobuf_free,
     __protobuf_getAddr,
     __protobuf_getLength,
-    __protobuf_setu8
-} from './vendor/teleport';
+} from '../vendor/teleport';
 export { handleEvent } from './index';
 
 // Main test function
@@ -40,7 +39,7 @@ function testAddAnnotation(): void {
     const result = handleEvent(testAccessRequest)
     assert(result != null, "Request is processed")
 
-    const changedEvent = events.OneOf.decode(arrayToDataView(result as Array<u8>));
+    const changedEvent = events.OneOf.decode(result as DataView);
     assert(changedEvent.AccessRequestCreate != null, "AccessRequestCreate is present")
 
     const changedAccessRequest = changedEvent.AccessRequestCreate as events.AccessRequestCreate;

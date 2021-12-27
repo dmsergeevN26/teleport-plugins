@@ -63,3 +63,7 @@ ssh.config
 
 # teleport binaries
 /.teleport
+
+# Custom wasmer for M1. Remove once M1 binaries are added to wasmer-go itself.
+vendor/github.com/wasmerio/wasmer-go/wasmer/packaged/lib/darwin-aarch64/
+wasmer-go 

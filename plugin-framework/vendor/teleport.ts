@@ -480,28 +480,20 @@ namespace __proto {
 /**
  * Allocates the memory segment for a protobuf binary message.
  * @param length Segment length
- * @returns Segment addr
+ * @returns [Segment addr, segment length]
  */
-export function __protobuf_alloc(length: i32): DataView {
-    const data = new DataView(new ArrayBuffer(length));
-    return data;
-}
-
-/**
- * Sets the byte value within the allocated memory segment.
- * @param length Segment length
- * @returns Segment addr
- */
-export function __protobuf_setu8(data: DataView, offset: i32, value: u8): void {
-    data.setUint8(offset, value);
+export function __protobuf_alloc(length: i32): u64 {
+    const view = new DataView(new ArrayBuffer(length));
+    __pin(changetype<usize>(view));
+    return (u64(changetype<usize>(view)) << 32) | (changetype<usize>(view.buffer) + view.byteOffset);
 }
 
 /**
  * Frees the protobuf memory segment. In case of AS, it releases it's GC lock.
  * @param addr Segment addr
  */
-export function __protobuf_free(data: DataView): void {
-    // no-op, __unpin possibly?
+export function __protobuf_free(view: DataView): void {
+    __unpin(changetype<usize>(view));
 }
 
 /**
@@ -509,8 +501,8 @@ export function __protobuf_free(data: DataView): void {
  * @param data DataView instance
  * @returns Length
  */
-export function __protobuf_getLength(data: DataView): u32 {
-    return data.byteLength;
+export function __protobuf_getLength(view: DataView): u32 {
+    return view.byteLength;
 }
 
 /**
@@ -519,8 +511,8 @@ export function __protobuf_getLength(data: DataView): u32 {
  * @param data DataView instance
  * @returns Memory address
  */
-export function __protobuf_getAddr(data: DataView): usize {
-    return changetype<usize>(data.buffer) + data.byteOffset;
+export function __protobuf_getAddr(view: DataView): usize {
+    return changetype<usize>(view.buffer) + view.byteOffset;
 }
 
 export namespace google {
@@ -574,7 +566,17 @@ export namespace google {
                 return size;
             }
 
-            // Encodes Timestamp to the array
+            // Encodes Timestamp to the DataView
+            encodeDataView(): DataView {
+                const source = this.encode();
+                const view = new DataView(new ArrayBuffer(source.length));
+                for (let i: i32 = 0; i < source.length; i++) {
+                    view.setUint8(i, source.at(i));
+                }
+                return view;
+            }
+
+            // Encodes Timestamp to the Array<u8>
             encode(
                 encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
             ): Array<u8> {
@@ -661,7 +663,17 @@ export namespace google {
                 return size;
             }
 
-            // Encodes Struct to the array
+            // Encodes Struct to the DataView
+            encodeDataView(): DataView {
+                const source = this.encode();
+                const view = new DataView(new ArrayBuffer(source.length));
+                for (let i: i32 = 0; i < source.length; i++) {
+                    view.setUint8(i, source.at(i));
+                }
+                return view;
+            }
+
+            // Encodes Struct to the Array<u8>
             encode(
                 encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
             ): Array<u8> {
@@ -820,7 +832,17 @@ export namespace google {
                 return size;
             }
 
-            // Encodes Value to the array
+            // Encodes Value to the DataView
+            encodeDataView(): DataView {
+                const source = this.encode();
+                const view = new DataView(new ArrayBuffer(source.length));
+                for (let i: i32 = 0; i < source.length; i++) {
+                    view.setUint8(i, source.at(i));
+                }
+                return view;
+            }
+
+            // Encodes Value to the Array<u8>
             encode(
                 encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
             ): Array<u8> {
@@ -932,7 +954,17 @@ export namespace google {
                 return size;
             }
 
-            // Encodes ListValue to the array
+            // Encodes ListValue to the DataView
+            encodeDataView(): DataView {
+                const source = this.encode();
+                const view = new DataView(new ArrayBuffer(source.length));
+                for (let i: i32 = 0; i < source.length; i++) {
+                    view.setUint8(i, source.at(i));
+                }
+                return view;
+            }
+
+            // Encodes ListValue to the Array<u8>
             encode(
                 encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
             ): Array<u8> {
@@ -993,7 +1025,17 @@ export namespace wrappers {
             return size;
         }
 
-        // Encodes StringValues to the array
+        // Encodes StringValues to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes StringValues to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -1072,7 +1114,17 @@ export namespace wrappers {
             return size;
         }
 
-        // Encodes LabelValues to the array
+        // Encodes LabelValues to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes LabelValues to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -1241,7 +1293,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes KeepAlive to the array
+        // Encodes KeepAlive to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes KeepAlive to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -1415,7 +1477,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes Metadata to the array
+        // Encodes Metadata to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes Metadata to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -1645,7 +1717,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes Rotation to the array
+        // Encodes Rotation to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes Rotation to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -1827,7 +1909,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes RotationSchedule to the array
+        // Encodes RotationSchedule to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes RotationSchedule to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -1963,7 +2055,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes ResourceHeader to the array
+        // Encodes ResourceHeader to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes ResourceHeader to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -2117,7 +2219,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes DatabaseServerV3 to the array
+        // Encodes DatabaseServerV3 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes DatabaseServerV3 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -2405,7 +2517,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes DatabaseServerSpecV3 to the array
+        // Encodes DatabaseServerSpecV3 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes DatabaseServerSpecV3 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -2587,7 +2709,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes DatabaseV3List to the array
+        // Encodes DatabaseV3List to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes DatabaseV3List to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -2747,7 +2879,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes DatabaseV3 to the array
+        // Encodes DatabaseV3 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes DatabaseV3 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -2954,7 +3096,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes DatabaseSpecV3 to the array
+        // Encodes DatabaseSpecV3 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes DatabaseSpecV3 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -3101,7 +3253,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes DatabaseStatusV3 to the array
+        // Encodes DatabaseStatusV3 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes DatabaseStatusV3 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -3233,7 +3395,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes AWS to the array
+        // Encodes AWS to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes AWS to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -3323,7 +3495,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes Redshift to the array
+        // Encodes Redshift to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes Redshift to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -3411,7 +3593,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes RDS to the array
+        // Encodes RDS to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes RDS to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -3496,7 +3688,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes GCPCloudSQL to the array
+        // Encodes GCPCloudSQL to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes GCPCloudSQL to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -3631,7 +3833,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes ServerV2 to the array
+        // Encodes ServerV2 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes ServerV2 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -3738,7 +3950,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes ServerV2List to the array
+        // Encodes ServerV2List to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes ServerV2List to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -3948,7 +4170,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes ServerSpecV2 to the array
+        // Encodes ServerSpecV2 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes ServerSpecV2 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -4160,7 +4392,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes AppServerV3 to the array
+        // Encodes AppServerV3 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes AppServerV3 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -4324,7 +4566,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes AppServerSpecV3 to the array
+        // Encodes AppServerSpecV3 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes AppServerSpecV3 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -4431,7 +4683,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes AppV3List to the array
+        // Encodes AppV3List to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes AppV3List to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -4565,7 +4827,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes AppV3 to the array
+        // Encodes AppV3 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes AppV3 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -4732,7 +5004,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes AppSpecV3 to the array
+        // Encodes AppSpecV3 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes AppSpecV3 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -4964,7 +5246,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes App to the array
+        // Encodes App to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes App to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -5129,7 +5421,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes Rewrite to the array
+        // Encodes Rewrite to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes Rewrite to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -5212,7 +5514,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes Header to the array
+        // Encodes Header to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes Header to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -5291,7 +5603,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes CommandLabelV2 to the array
+        // Encodes CommandLabelV2 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes CommandLabelV2 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -5384,7 +5706,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes SSHKeyPair to the array
+        // Encodes SSHKeyPair to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes SSHKeyPair to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -5471,7 +5803,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes TLSKeyPair to the array
+        // Encodes TLSKeyPair to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes TLSKeyPair to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -5560,7 +5902,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes JWTKeyPair to the array
+        // Encodes JWTKeyPair to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes JWTKeyPair to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -5701,7 +6053,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes CertAuthorityV2 to the array
+        // Encodes CertAuthorityV2 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes CertAuthorityV2 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -5988,7 +6350,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes CertAuthoritySpecV2 to the array
+        // Encodes CertAuthoritySpecV2 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes CertAuthoritySpecV2 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -6217,7 +6589,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes CAKeySet to the array
+        // Encodes CAKeySet to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes CAKeySet to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -6308,7 +6690,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes RoleMapping to the array
+        // Encodes RoleMapping to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes RoleMapping to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -6409,7 +6801,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes ProvisionTokenV1 to the array
+        // Encodes ProvisionTokenV1 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes ProvisionTokenV1 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -6561,7 +6963,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes ProvisionTokenV2 to the array
+        // Encodes ProvisionTokenV2 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes ProvisionTokenV2 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -6669,7 +7081,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes ProvisionTokenV2List to the array
+        // Encodes ProvisionTokenV2List to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes ProvisionTokenV2List to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -6752,7 +7174,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes TokenRule to the array
+        // Encodes TokenRule to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes TokenRule to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -6856,7 +7288,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes ProvisionTokenSpecV2 to the array
+        // Encodes ProvisionTokenSpecV2 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes ProvisionTokenSpecV2 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -7004,7 +7446,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes StaticTokensV2 to the array
+        // Encodes StaticTokensV2 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes StaticTokensV2 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -7112,7 +7564,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes StaticTokensSpecV2 to the array
+        // Encodes StaticTokensSpecV2 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes StaticTokensSpecV2 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -7247,7 +7709,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes ClusterNameV2 to the array
+        // Encodes ClusterNameV2 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes ClusterNameV2 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -7352,7 +7824,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes ClusterNameSpecV2 to the array
+        // Encodes ClusterNameSpecV2 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes ClusterNameSpecV2 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -7489,7 +7971,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes ClusterAuditConfigV2 to the array
+        // Encodes ClusterAuditConfigV2 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes ClusterAuditConfigV2 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -7692,7 +8184,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes ClusterAuditConfigSpecV2 to the array
+        // Encodes ClusterAuditConfigSpecV2 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes ClusterAuditConfigSpecV2 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -7879,7 +8381,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes ClusterNetworkingConfigV2 to the array
+        // Encodes ClusterNetworkingConfigV2 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes ClusterNetworkingConfigV2 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -8040,7 +8552,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes ClusterNetworkingConfigSpecV2 to the array
+        // Encodes ClusterNetworkingConfigSpecV2 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes ClusterNetworkingConfigSpecV2 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -8200,7 +8722,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes SessionRecordingConfigV2 to the array
+        // Encodes SessionRecordingConfigV2 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes SessionRecordingConfigV2 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -8321,7 +8853,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes SessionRecordingConfigSpecV2 to the array
+        // Encodes SessionRecordingConfigSpecV2 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes SessionRecordingConfigSpecV2 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -8465,7 +9007,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes AuthPreferenceV2 to the array
+        // Encodes AuthPreferenceV2 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes AuthPreferenceV2 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -8709,7 +9261,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes AuthPreferenceSpecV2 to the array
+        // Encodes AuthPreferenceSpecV2 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes AuthPreferenceSpecV2 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -8857,7 +9419,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes U2F to the array
+        // Encodes U2F to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes U2F to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -8958,7 +9530,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes Webauthn to the array
+        // Encodes Webauthn to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes Webauthn to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -9117,7 +9699,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes Namespace to the array
+        // Encodes Namespace to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes Namespace to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -9197,7 +9789,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes NamespaceSpec to the array
+        // Encodes NamespaceSpec to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes NamespaceSpec to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -9322,7 +9924,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes UserTokenV3 to the array
+        // Encodes UserTokenV3 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes UserTokenV3 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -9459,7 +10071,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes UserTokenSpecV3 to the array
+        // Encodes UserTokenSpecV3 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes UserTokenSpecV3 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -9612,7 +10234,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes UserTokenSecretsV3 to the array
+        // Encodes UserTokenSecretsV3 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes UserTokenSecretsV3 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -9743,7 +10375,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes UserTokenSecretsSpecV3 to the array
+        // Encodes UserTokenSecretsSpecV3 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes UserTokenSecretsSpecV3 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -9892,7 +10534,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes AccessRequestV3 to the array
+        // Encodes AccessRequestV3 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes AccessRequestV3 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -10010,7 +10662,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes AccessReviewThreshold to the array
+        // Encodes AccessReviewThreshold to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes AccessReviewThreshold to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -10169,7 +10831,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes AccessReview to the array
+        // Encodes AccessReview to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes AccessReview to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -10302,7 +10974,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes AccessReviewSubmission to the array
+        // Encodes AccessReviewSubmission to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes AccessReviewSubmission to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -10369,7 +11051,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes ThresholdIndexSet to the array
+        // Encodes ThresholdIndexSet to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes ThresholdIndexSet to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -10444,7 +11136,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes ThresholdIndexSets to the array
+        // Encodes ThresholdIndexSets to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes ThresholdIndexSets to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -10738,7 +11440,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes AccessRequestSpecV3 to the array
+        // Encodes AccessRequestSpecV3 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes AccessRequestSpecV3 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -10944,7 +11656,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes AccessRequestFilter to the array
+        // Encodes AccessRequestFilter to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes AccessRequestFilter to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -11015,7 +11737,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes AccessCapabilities to the array
+        // Encodes AccessCapabilities to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes AccessCapabilities to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -11097,7 +11829,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes AccessCapabilitiesRequest to the array
+        // Encodes AccessCapabilitiesRequest to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes AccessCapabilitiesRequest to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -11236,7 +11978,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes PluginDataV3 to the array
+        // Encodes PluginDataV3 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes PluginDataV3 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -11339,7 +12091,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes PluginDataEntry to the array
+        // Encodes PluginDataEntry to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes PluginDataEntry to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -11433,7 +12195,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes PluginDataSpecV3 to the array
+        // Encodes PluginDataSpecV3 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes PluginDataSpecV3 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -11538,7 +12310,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes PluginDataFilter to the array
+        // Encodes PluginDataFilter to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes PluginDataFilter to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -11672,7 +12454,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes PluginDataUpdateParams to the array
+        // Encodes PluginDataUpdateParams to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes PluginDataUpdateParams to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -11858,7 +12650,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes RoleV4 to the array
+        // Encodes RoleV4 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes RoleV4 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -12014,7 +12816,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes RoleSpecV4 to the array
+        // Encodes RoleSpecV4 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes RoleSpecV4 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -12231,7 +13043,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes RoleOptions to the array
+        // Encodes RoleOptions to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes RoleOptions to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -12661,7 +13483,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes RoleConditions to the array
+        // Encodes RoleConditions to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes RoleConditions to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -12980,7 +13812,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes AccessRequestConditions to the array
+        // Encodes AccessRequestConditions to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes AccessRequestConditions to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -13115,7 +13957,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes AccessReviewConditions to the array
+        // Encodes AccessReviewConditions to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes AccessReviewConditions to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -13211,7 +14063,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes ClaimMapping to the array
+        // Encodes ClaimMapping to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes ClaimMapping to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -13305,7 +14167,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes Rule to the array
+        // Encodes Rule to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes Rule to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -13403,7 +14275,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes ImpersonateConditions to the array
+        // Encodes ImpersonateConditions to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes ImpersonateConditions to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -13474,7 +14356,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes BoolValue to the array
+        // Encodes BoolValue to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes BoolValue to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -13603,7 +14495,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes UserV2 to the array
+        // Encodes UserV2 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes UserV2 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -13894,7 +14796,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes UserSpecV2 to the array
+        // Encodes UserSpecV2 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes UserSpecV2 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -14057,7 +14969,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes ExternalIdentity to the array
+        // Encodes ExternalIdentity to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes ExternalIdentity to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -14207,7 +15129,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes LoginStatus to the array
+        // Encodes LoginStatus to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes LoginStatus to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -14371,7 +15303,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes CreatedBy to the array
+        // Encodes CreatedBy to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes CreatedBy to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -14483,7 +15425,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes U2FRegistrationData to the array
+        // Encodes U2FRegistrationData to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes U2FRegistrationData to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -14651,7 +15603,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes LocalAuthSecrets to the array
+        // Encodes LocalAuthSecrets to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes LocalAuthSecrets to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -14938,7 +15900,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes MFADevice to the array
+        // Encodes MFADevice to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes MFADevice to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -15086,7 +16058,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes TOTPDevice to the array
+        // Encodes TOTPDevice to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes TOTPDevice to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -15164,7 +16146,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes U2FDevice to the array
+        // Encodes U2FDevice to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes U2FDevice to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -15275,7 +16267,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes WebauthnDevice to the array
+        // Encodes WebauthnDevice to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes WebauthnDevice to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -15354,7 +16356,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes WebauthnLocalAuth to the array
+        // Encodes WebauthnLocalAuth to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes WebauthnLocalAuth to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -15436,7 +16448,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes ConnectorRef to the array
+        // Encodes ConnectorRef to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes ConnectorRef to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -15506,7 +16528,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes UserRef to the array
+        // Encodes UserRef to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes UserRef to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -15638,7 +16670,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes ReverseTunnelV2 to the array
+        // Encodes ReverseTunnelV2 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes ReverseTunnelV2 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -15751,7 +16793,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes ReverseTunnelSpecV2 to the array
+        // Encodes ReverseTunnelSpecV2 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes ReverseTunnelSpecV2 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -15897,7 +16949,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes TunnelConnectionV2 to the array
+        // Encodes TunnelConnectionV2 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes TunnelConnectionV2 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -16040,7 +17102,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes TunnelConnectionSpecV2 to the array
+        // Encodes TunnelConnectionSpecV2 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes TunnelConnectionSpecV2 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -16134,7 +17206,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes SemaphoreFilter to the array
+        // Encodes SemaphoreFilter to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes SemaphoreFilter to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -16257,7 +17339,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes AcquireSemaphoreRequest to the array
+        // Encodes AcquireSemaphoreRequest to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes AcquireSemaphoreRequest to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -16392,7 +17484,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes SemaphoreLease to the array
+        // Encodes SemaphoreLease to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes SemaphoreLease to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -16512,7 +17614,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes SemaphoreLeaseRef to the array
+        // Encodes SemaphoreLeaseRef to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes SemaphoreLeaseRef to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -16661,7 +17773,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes SemaphoreV3 to the array
+        // Encodes SemaphoreV3 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes SemaphoreV3 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -16769,7 +17891,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes SemaphoreSpecV3 to the array
+        // Encodes SemaphoreSpecV3 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes SemaphoreSpecV3 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -16904,7 +18036,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes WebSessionV2 to the array
+        // Encodes WebSessionV2 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes WebSessionV2 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -17131,7 +18273,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes WebSessionSpecV2 to the array
+        // Encodes WebSessionSpecV2 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes WebSessionSpecV2 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -17252,7 +18404,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes WebSessionFilter to the array
+        // Encodes WebSessionFilter to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes WebSessionFilter to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -17384,7 +18546,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes RemoteClusterV3 to the array
+        // Encodes RemoteClusterV3 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes RemoteClusterV3 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -17504,7 +18676,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes RemoteClusterStatusV3 to the array
+        // Encodes RemoteClusterStatusV3 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes RemoteClusterStatusV3 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -17632,7 +18814,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes KubernetesCluster to the array
+        // Encodes KubernetesCluster to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes KubernetesCluster to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -17816,7 +19008,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes KubernetesClusterV3 to the array
+        // Encodes KubernetesClusterV3 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes KubernetesClusterV3 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -17929,7 +19131,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes KubernetesClusterSpecV3 to the array
+        // Encodes KubernetesClusterSpecV3 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes KubernetesClusterSpecV3 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -18083,7 +19295,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes WebTokenV3 to the array
+        // Encodes WebTokenV3 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes WebTokenV3 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -18188,7 +19410,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes WebTokenSpecV3 to the array
+        // Encodes WebTokenSpecV3 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes WebTokenSpecV3 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -18264,7 +19496,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes GetWebSessionRequest to the array
+        // Encodes GetWebSessionRequest to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes GetWebSessionRequest to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -18340,7 +19582,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes DeleteWebSessionRequest to the array
+        // Encodes DeleteWebSessionRequest to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes DeleteWebSessionRequest to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -18416,7 +19668,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes GetWebTokenRequest to the array
+        // Encodes GetWebTokenRequest to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes GetWebTokenRequest to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -18492,7 +19754,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes DeleteWebTokenRequest to the array
+        // Encodes DeleteWebTokenRequest to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes DeleteWebTokenRequest to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -18557,7 +19829,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes ResourceRequest to the array
+        // Encodes ResourceRequest to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes ResourceRequest to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -18623,7 +19905,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes ResourceWithSecretsRequest to the array
+        // Encodes ResourceWithSecretsRequest to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes ResourceWithSecretsRequest to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -18684,7 +19976,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes ResourcesWithSecretsRequest to the array
+        // Encodes ResourcesWithSecretsRequest to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes ResourcesWithSecretsRequest to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -18754,7 +20056,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes ResourceInNamespaceRequest to the array
+        // Encodes ResourceInNamespaceRequest to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes ResourceInNamespaceRequest to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -18821,7 +20133,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes ResourcesInNamespaceRequest to the array
+        // Encodes ResourcesInNamespaceRequest to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes ResourcesInNamespaceRequest to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -18953,7 +20275,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes OIDCConnectorV2 to the array
+        // Encodes OIDCConnectorV2 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes OIDCConnectorV2 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -19061,7 +20393,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes OIDCConnectorV2List to the array
+        // Encodes OIDCConnectorV2List to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes OIDCConnectorV2List to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -19272,7 +20614,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes OIDCConnectorSpecV2 to the array
+        // Encodes OIDCConnectorSpecV2 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes OIDCConnectorSpecV2 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -19474,7 +20826,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes SAMLConnectorV2 to the array
+        // Encodes SAMLConnectorV2 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes SAMLConnectorV2 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -19582,7 +20944,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes SAMLConnectorV2List to the array
+        // Encodes SAMLConnectorV2List to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes SAMLConnectorV2List to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -19828,7 +21200,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes SAMLConnectorSpecV2 to the array
+        // Encodes SAMLConnectorSpecV2 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes SAMLConnectorSpecV2 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -19986,7 +21368,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes AttributeMapping to the array
+        // Encodes AttributeMapping to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes AttributeMapping to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -20070,7 +21462,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes AsymmetricKeyPair to the array
+        // Encodes AsymmetricKeyPair to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes AsymmetricKeyPair to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -20207,7 +21609,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes GithubConnectorV3 to the array
+        // Encodes GithubConnectorV3 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes GithubConnectorV3 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -20315,7 +21727,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes GithubConnectorV3List to the array
+        // Encodes GithubConnectorV3List to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes GithubConnectorV3List to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -20439,7 +21861,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes GithubConnectorSpecV3 to the array
+        // Encodes GithubConnectorSpecV3 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes GithubConnectorSpecV3 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -20557,7 +21989,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes TeamMapping to the array
+        // Encodes TeamMapping to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes TeamMapping to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -20718,7 +22160,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes TrustedClusterV2 to the array
+        // Encodes TrustedClusterV2 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes TrustedClusterV2 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -20826,7 +22278,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes TrustedClusterV2List to the array
+        // Encodes TrustedClusterV2List to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes TrustedClusterV2List to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -20952,7 +22414,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes TrustedClusterSpecV2 to the array
+        // Encodes TrustedClusterSpecV2 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes TrustedClusterSpecV2 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -21115,7 +22587,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes LockV2 to the array
+        // Encodes LockV2 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes LockV2 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -21259,7 +22741,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes LockSpecV2 to the array
+        // Encodes LockSpecV2 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes LockSpecV2 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -21387,7 +22879,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes LockTarget to the array
+        // Encodes LockTarget to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes LockTarget to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -21467,7 +22969,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes AddressCondition to the array
+        // Encodes AddressCondition to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes AddressCondition to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -21567,7 +23079,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes NetworkRestrictionsSpecV4 to the array
+        // Encodes NetworkRestrictionsSpecV4 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes NetworkRestrictionsSpecV4 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -21713,7 +23235,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes NetworkRestrictionsV4 to the array
+        // Encodes NetworkRestrictionsV4 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes NetworkRestrictionsV4 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -21846,7 +23378,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes WindowsDesktopServiceV3 to the array
+        // Encodes WindowsDesktopServiceV3 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes WindowsDesktopServiceV3 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -21937,7 +23479,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes WindowsDesktopServiceSpecV3 to the array
+        // Encodes WindowsDesktopServiceSpecV3 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes WindowsDesktopServiceSpecV3 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -22041,7 +23593,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes WindowsDesktopV3 to the array
+        // Encodes WindowsDesktopV3 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes WindowsDesktopV3 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -22130,7 +23692,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes WindowsDesktopSpecV3 to the array
+        // Encodes WindowsDesktopSpecV3 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes WindowsDesktopSpecV3 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -22287,7 +23859,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes RegisterUsingTokenRequest to the array
+        // Encodes RegisterUsingTokenRequest to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes RegisterUsingTokenRequest to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -22475,7 +24057,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes RecoveryCodesV1 to the array
+        // Encodes RecoveryCodesV1 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes RecoveryCodesV1 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -22609,7 +24201,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes RecoveryCodesSpecV1 to the array
+        // Encodes RecoveryCodesSpecV1 to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes RecoveryCodesSpecV1 to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -22691,7 +24293,17 @@ export namespace types {
             return size;
         }
 
-        // Encodes RecoveryCode to the array
+        // Encodes RecoveryCode to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes RecoveryCode to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -22826,7 +24438,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes Metadata to the array
+        // Encodes Metadata to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes Metadata to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -22929,7 +24551,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes SessionMetadata to the array
+        // Encodes SessionMetadata to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes SessionMetadata to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -23027,7 +24659,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes UserMetadata to the array
+        // Encodes UserMetadata to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes UserMetadata to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -23160,7 +24802,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes ServerMetadata to the array
+        // Encodes ServerMetadata to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes ServerMetadata to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -23280,7 +24932,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes ConnectionMetadata to the array
+        // Encodes ConnectionMetadata to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes ConnectionMetadata to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -23364,7 +25026,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes KubernetesClusterMetadata to the array
+        // Encodes KubernetesClusterMetadata to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes KubernetesClusterMetadata to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -23490,7 +25162,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes KubernetesPodMetadata to the array
+        // Encodes KubernetesPodMetadata to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes KubernetesPodMetadata to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -23773,7 +25455,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes SessionStart to the array
+        // Encodes SessionStart to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes SessionStart to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -24079,7 +25771,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes SessionJoin to the array
+        // Encodes SessionJoin to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes SessionJoin to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -24260,7 +25962,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes SessionPrint to the array
+        // Encodes SessionPrint to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes SessionPrint to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -24454,7 +26166,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes SessionReject to the array
+        // Encodes SessionReject to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes SessionReject to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -24743,7 +26465,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes Resize to the array
+        // Encodes Resize to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes Resize to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -25144,7 +26876,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes SessionEnd to the array
+        // Encodes SessionEnd to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes SessionEnd to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -25353,7 +27095,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes BPFMetadata to the array
+        // Encodes BPFMetadata to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes BPFMetadata to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -25438,7 +27190,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes Status to the array
+        // Encodes Status to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes Status to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -25652,7 +27414,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes SessionCommand to the array
+        // Encodes SessionCommand to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes SessionCommand to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -25926,7 +27698,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes SessionDisk to the array
+        // Encodes SessionDisk to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes SessionDisk to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -26219,7 +28001,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes SessionNetwork to the array
+        // Encodes SessionNetwork to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes SessionNetwork to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -26495,7 +28287,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes SessionData to the array
+        // Encodes SessionData to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes SessionData to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -26730,7 +28532,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes SessionLeave to the array
+        // Encodes SessionLeave to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes SessionLeave to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -26968,7 +28780,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes UserLogin to the array
+        // Encodes UserLogin to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes UserLogin to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -27137,7 +28959,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes ResourceMetadata to the array
+        // Encodes ResourceMetadata to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes ResourceMetadata to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -27301,7 +29133,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes UserCreate to the array
+        // Encodes UserCreate to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes UserCreate to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -27467,7 +29309,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes UserDelete to the array
+        // Encodes UserDelete to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes UserDelete to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -27593,7 +29445,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes UserPasswordChange to the array
+        // Encodes UserPasswordChange to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes UserPasswordChange to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -27834,7 +29696,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes AccessRequestCreate to the array
+        // Encodes AccessRequestCreate to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes AccessRequestCreate to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -28074,7 +29946,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes PortForward to the array
+        // Encodes PortForward to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes PortForward to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -28268,7 +30150,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes X11Forward to the array
+        // Encodes X11Forward to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes X11Forward to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -28392,7 +30284,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes CommandMetadata to the array
+        // Encodes CommandMetadata to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes CommandMetadata to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -28652,7 +30554,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes Exec to the array
+        // Encodes Exec to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes Exec to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -28963,7 +30875,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes SCP to the array
+        // Encodes SCP to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes SCP to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -29185,7 +31107,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes Subsystem to the array
+        // Encodes Subsystem to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes Subsystem to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -29385,7 +31317,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes ClientDisconnect to the array
+        // Encodes ClientDisconnect to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes ClientDisconnect to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -29579,7 +31521,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes AuthAttempt to the array
+        // Encodes AuthAttempt to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes AuthAttempt to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -29743,7 +31695,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes UserTokenCreate to the array
+        // Encodes UserTokenCreate to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes UserTokenCreate to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -29895,7 +31857,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes RoleCreate to the array
+        // Encodes RoleCreate to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes RoleCreate to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -30047,7 +32019,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes RoleDelete to the array
+        // Encodes RoleDelete to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes RoleDelete to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -30199,7 +32181,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes TrustedClusterCreate to the array
+        // Encodes TrustedClusterCreate to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes TrustedClusterCreate to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -30351,7 +32343,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes TrustedClusterDelete to the array
+        // Encodes TrustedClusterDelete to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes TrustedClusterDelete to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -30503,7 +32505,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes TrustedClusterTokenCreate to the array
+        // Encodes TrustedClusterTokenCreate to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes TrustedClusterTokenCreate to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -30655,7 +32667,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes GithubConnectorCreate to the array
+        // Encodes GithubConnectorCreate to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes GithubConnectorCreate to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -30807,7 +32829,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes GithubConnectorDelete to the array
+        // Encodes GithubConnectorDelete to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes GithubConnectorDelete to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -30959,7 +32991,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes OIDCConnectorCreate to the array
+        // Encodes OIDCConnectorCreate to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes OIDCConnectorCreate to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -31111,7 +33153,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes OIDCConnectorDelete to the array
+        // Encodes OIDCConnectorDelete to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes OIDCConnectorDelete to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -31263,7 +33315,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes SAMLConnectorCreate to the array
+        // Encodes SAMLConnectorCreate to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes SAMLConnectorCreate to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -31415,7 +33477,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes SAMLConnectorDelete to the array
+        // Encodes SAMLConnectorDelete to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes SAMLConnectorDelete to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -31695,7 +33767,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes KubeRequest to the array
+        // Encodes KubeRequest to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes KubeRequest to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -31880,7 +33962,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes AppMetadata to the array
+        // Encodes AppMetadata to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes AppMetadata to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -32054,7 +34146,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes AppCreate to the array
+        // Encodes AppCreate to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes AppCreate to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -32242,7 +34344,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes AppUpdate to the array
+        // Encodes AppUpdate to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes AppUpdate to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -32406,7 +34518,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes AppDelete to the array
+        // Encodes AppDelete to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes AppDelete to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -32620,7 +34742,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes AppSessionStart to the array
+        // Encodes AppSessionStart to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes AppSessionStart to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -32864,7 +34996,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes AppSessionChunk to the array
+        // Encodes AppSessionChunk to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes AppSessionChunk to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -33039,7 +35181,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes AppSessionRequest to the array
+        // Encodes AppSessionRequest to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes AppSessionRequest to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -33243,7 +35395,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes DatabaseMetadata to the array
+        // Encodes DatabaseMetadata to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes DatabaseMetadata to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -33455,7 +35617,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes DatabaseCreate to the array
+        // Encodes DatabaseCreate to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes DatabaseCreate to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -33645,7 +35817,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes DatabaseUpdate to the array
+        // Encodes DatabaseUpdate to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes DatabaseUpdate to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -33809,7 +35991,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes DatabaseDelete to the array
+        // Encodes DatabaseDelete to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes DatabaseDelete to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -34061,7 +36253,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes DatabaseSessionStart to the array
+        // Encodes DatabaseSessionStart to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes DatabaseSessionStart to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -34329,7 +36531,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes DatabaseSessionQuery to the array
+        // Encodes DatabaseSessionQuery to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes DatabaseSessionQuery to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -34644,7 +36856,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes WindowsDesktopSessionStart to the array
+        // Encodes WindowsDesktopSessionStart to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes WindowsDesktopSessionStart to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -34889,7 +37111,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes DatabaseSessionEnd to the array
+        // Encodes DatabaseSessionEnd to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes DatabaseSessionEnd to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -35013,7 +37245,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes MFADeviceMetadata to the array
+        // Encodes MFADeviceMetadata to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes MFADeviceMetadata to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -35145,7 +37387,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes MFADeviceAdd to the array
+        // Encodes MFADeviceAdd to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes MFADeviceAdd to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -35297,7 +37549,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes MFADeviceDelete to the array
+        // Encodes MFADeviceDelete to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes MFADeviceDelete to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -35423,7 +37685,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes BillingInformationUpdate to the array
+        // Encodes BillingInformationUpdate to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes BillingInformationUpdate to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -35537,7 +37809,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes BillingCardCreate to the array
+        // Encodes BillingCardCreate to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes BillingCardCreate to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -35651,7 +37933,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes BillingCardDelete to the array
+        // Encodes BillingCardDelete to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes BillingCardDelete to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -35791,7 +38083,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes LockCreate to the array
+        // Encodes LockCreate to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes LockCreate to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -35943,7 +38245,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes LockDelete to the array
+        // Encodes LockDelete to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes LockDelete to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -36069,7 +38381,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes RecoveryCodeGenerate to the array
+        // Encodes RecoveryCodeGenerate to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes RecoveryCodeGenerate to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -36207,7 +38529,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes RecoveryCodeUsed to the array
+        // Encodes RecoveryCodeUsed to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes RecoveryCodeUsed to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -36430,7 +38762,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes WindowsDesktopSessionEnd to the array
+        // Encodes WindowsDesktopSessionEnd to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes WindowsDesktopSessionEnd to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -38062,7 +40404,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes OneOf to the array
+        // Encodes OneOf to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes OneOf to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -38887,7 +41239,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes StreamStatus to the array
+        // Encodes StreamStatus to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes StreamStatus to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {
@@ -39024,7 +41386,17 @@ export namespace events {
             return size;
         }
 
-        // Encodes SessionUpload to the array
+        // Encodes SessionUpload to the DataView
+        encodeDataView(): DataView {
+            const source = this.encode();
+            const view = new DataView(new ArrayBuffer(source.length));
+            for (let i: i32 = 0; i < source.length; i++) {
+                view.setUint8(i, source.at(i));
+            }
+            return view;
+        }
+
+        // Encodes SessionUpload to the Array<u8>
         encode(
             encoder: __proto.Encoder = new __proto.Encoder(new Array<u8>())
         ): Array<u8> {

@@ -18,11 +18,13 @@ package main
 
 import (
 	"context"
+	"os"
 	"time"
 
 	"github.com/gravitational/teleport-plugins/lib"
 	"github.com/gravitational/teleport-plugins/lib/backoff"
 	"github.com/gravitational/teleport-plugins/lib/logger"
+	"github.com/gravitational/teleport-plugins/lib/wasm"
 	"github.com/gravitational/trace"
 	"github.com/jonboulle/clockwork"
 	"github.com/sirupsen/logrus"
@@ -42,6 +44,8 @@ type App struct {
 	eventsJob *EventsJob
 	// sessionEventsJob represents session events consumer job
 	sessionEventsJob *SessionEventsJob
+	// WASM host
+	wasmHost *wasm.Host
 	// Process
 	*lib.Process
 }
@@ -191,6 +195,55 @@ func (a *App) init(ctx context.Context) error {
 	log.WithField("cursor", latestCursor).Info("Using initial cursor value")
 	log.WithField("id", latestID).Info("Using initial ID value")
 	log.WithField("value", startTime).Info("Using start time from state")
+
+	err = a.initWasm(ctx)
+	if err != nil {
+		return trace.Wrap(err)
+	}
+
+	return nil
+}
+
+// initWasm initializes WASM host and loads WASM plugin
+func (a *App) initWasm(ctx context.Context) error {
+	var err error
+
+	log := logger.Get(ctx)
+
+	if a.Config.WASMPlugin == "" {
+		return nil
+	}
+
+	var fns = make([]string, 0)
+	if a.Config.WASMHandleEventFn != "" {
+		fns = append(fns, a.Config.WASMHandleEventFn)
+	}
+
+	if a.Config.WASMHandleSessionEventFn != "" {
+		fns = append(fns, a.Config.WASMHandleSessionEventFn)
+	}
+
+	a.wasmHost, err = wasm.NewHost(wasm.Options{
+		Logger:        log,
+		Test:          false,
+		Timeout:       a.Config.WASMTimeout,
+		Concurrency:   a.Config.Concurrency,
+		FunctionNames: fns,
+	})
+
+	if err != nil {
+		return trace.Wrap(err)
+	}
+
+	b, err := os.ReadFile(a.Config.WASMPlugin)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = a.wasmHost.LoadPlugin(b)
+	if err != nil {
+		return trace.Wrap(err)
+	}
 
 	return nil
 }

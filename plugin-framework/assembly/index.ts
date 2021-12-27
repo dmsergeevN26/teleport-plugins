@@ -1,20 +1,18 @@
-import { events } from './vendor/teleport';
-import { google } from './vendor/teleport';
+import { events } from '../vendor/teleport';
+import { google } from '../vendor/teleport';
 export {
     __protobuf_alloc,
     __protobuf_free,
     __protobuf_getAddr,
     __protobuf_getLength,
-    __protobuf_setu8
-} from './vendor/teleport';
+} from '../vendor/teleport';
 
 type Event = events.OneOf;
 
-export function handleEvent(eventData: DataView): Array<u8> | null {
+export function handleEvent(eventData: DataView): DataView | null {
     let event:Event | null = events.OneOf.decode(eventData);
     if (event == null) {
-        trace("Failed to decode Event from protobuf!")
-        return null
+        throw new Error("Failed to decode Event from protobuf!")
     }
 
     event = hideEvent(event);
@@ -32,7 +30,7 @@ export function handleEvent(eventData: DataView): Array<u8> | null {
         return null;
     }
 
-    return event.encode();
+    return event.encodeDataView();
 }
 
 // Hides secret-santa user logins

@@ -25,12 +25,14 @@ import (
 	"github.com/pelletier/go-toml"
 )
 
-const (
-	// fdPrefix contains section name which will be prepended with "forward."
-	fdPrefix = "fluentd"
-
-	// forwardPrefix contains prefix which must be prepended to "fluentd" section
-	forwardPrefix = "forward"
+var (
+	// Section names
+	sections = map[string]string{
+		"fluentd":  "forward.fluentd",
+		"teleport": "teleport",
+		"lock":     "lock",
+		"wasm":     "wasm",
+	}
 )
 
 // KongTOMLResolver is the kong resolver function for toml configuration file
@@ -44,17 +46,18 @@ func KongTOMLResolver(r io.Reader) (kong.Resolver, error) {
 	var f kong.ResolverFunc = func(context *kong.Context, parent *kong.Path, flag *kong.Flag) (interface{}, error) {
 		name := flag.Name
 
-		if strings.HasPrefix(name, fdPrefix) {
-			name = strings.Join([]string{forwardPrefix, fdPrefix, name[len(fdPrefix)+1:]}, ".")
-		}
-
 		value := config.Get(name)
-		valueWithinSeciton := config.Get(strings.ReplaceAll(name, "-", "."))
-
-		if valueWithinSeciton != nil {
-			return valueWithinSeciton, nil
+		if value != nil {
+			return value, nil
 		}
 
+		for k, v := range sections {
+			if strings.HasPrefix(name, k+"-") {
+				name = strings.Join([]string{v, name[len(k)+1:]}, ".")
+			}
+		}
+
+		value = config.Get(name)
 		return value, nil
 	}
 

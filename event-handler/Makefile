@@ -7,27 +7,29 @@ TERRAFORM_ARCH=$(OS)_$(ARCH)
 LOCALDIR := $(dir $(CURDIR)/$(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST)))
 BUILDDIR ?= build
 
-CUSTOM_WASMER_RUNTIME_DIR ?=
 ADDFLAGS ?=
 BUILDFLAGS ?= $(ADDFLAGS) -ldflags "-w -s -X main.Sha=`git rev-parse HEAD` -X main.Version=$(VERSION)" 
 CGOFLAG ?= CGO_ENABLED=1
 
-# Custom wasmer runtime is required for Apple M1.
-#
-# git clone git@github.com:wasmerio/wasmer-go.git && cd wasmer-go && cargo build --release && cd ..
-# CUSTOM_WASMER_RUNTIME_DIR=$(pwd)/wasmer-go make build
-ifneq ($(CUSTOM_WASMER_RUNTIME_DIR),)
+# Args for make gen-example-mtls
+PASS ?= 1234
+KEYLEN ?= 1024
+RELEASE = teleport-event-handler-v$(VERSION)-$(OS)-$(ARCH)-bin
+
+CUSTOM_WASMER_RUNTIME_DIR ?= $(LOCALDIR)/wasmer-go
+
+ifneq ($(CUSTOM_WASMER_RUNTIME),)
 	CGO_CFLAGS ?= "-I$(CUSTOM_WASMER_RUNTIME_DIR)/wasmer/packaged/include/"
 	CGO_LDFLAGS ?= "-Wl,-rpath,$(CUSTOM_WASMER_RUNTIME_DIR)/target/release/ -L$(CUSTOM_WASMER_RUNTIME_DIR)/target/release/ -lwasmer_go"
 	TAGS ?= --tags custom_wasmer_runtime 
 endif
 
-# Args for make gen-example-mtls
-PASS ?= 1234
-KEYLEN ?= 1024
+# Downloads custom wasmer runtime to current directory
+.PHONY: get-custom-wasmer-runtime
+get-custom-wasmer-runtime:
+	git clone git@github.com:wasmerio/wasmer-go.git && cd wasmer-go && cargo build --release && cd ..
 
-RELEASE = teleport-event-handler-v$(VERSION)-$(OS)-$(ARCH)-bin
-
+# Use CUSTOM_WASMER_RUNTIME=true if you have Mac M1 and wasmer-go is built in local directory
 .PHONY: build
 build: clean
 	GOOS=$(OS) GOARCH=$(ARCH) $(CGOFLAG) CGO_CFLAGS=$(CGO_CFLAGS) CGO_LDFLAGS=$(CGO_LDFLAGS) go build -o $(BUILDDIR)/teleport-event-handler $(BUILDFLAGS) $(TAGS)
