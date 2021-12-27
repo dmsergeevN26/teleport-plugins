@@ -31,7 +31,6 @@
       },
       "dev": {
         "binaryFile": "../lib/wasm/test.wasm",
-        "sourceMap": false,
         "exportRuntime": true,
         "debug": true,
         "memoryBase": "0x100000"

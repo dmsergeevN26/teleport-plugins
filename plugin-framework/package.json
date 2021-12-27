@@ -29,6 +29,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@assemblyscript/loader": "^0.19.20",
+    "as-sleep": "^0.0.2",
     "as-uuid": "^0.0.4",
     "tslib": "~2.3.1"
   },

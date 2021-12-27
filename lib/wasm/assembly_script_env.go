@@ -67,7 +67,16 @@ func (e *AsssemblyScriptEnv) RegisterExports(store *wasmer.Store, importObject *
 		"seed":  wasmer.NewFunction(store, asSeed, e.seed),
 	})
 
+	importObject.Register("Date", map[string]wasmer.IntoExtern{
+		"now": wasmer.NewFunction(store, asSeed, e.dateNow),
+	})
+
 	return nil
+}
+
+// dateNow exports `Date`.`now`, which is required for datetime ops
+func (e *AsssemblyScriptEnv) dateNow(args []wasmer.Value) ([]wasmer.Value, error) {
+	return []wasmer.Value{wasmer.NewF64(float64(time.Now().UTC().UnixMilli()))}, nil
 }
 
 // ValidateImports validates that protobuf interop functions exists in the module
