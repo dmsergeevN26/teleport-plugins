@@ -1,4 +1,4 @@
-import { getFixture, arrayToDataView } from '../vendor/test';
+import { getFixture } from '../vendor/test';
 import { handleEvent } from '.';
 import { events } from '../vendor/teleport';
 

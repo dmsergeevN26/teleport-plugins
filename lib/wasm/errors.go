@@ -5,8 +5,8 @@ import (
 	"github.com/wasmerio/wasmer-go/wasmer"
 )
 
-// NewBadFunctionError creates new error for missing export function
-func NewBadFunctionError(fn wasmer.NativeFunction, err error, fnName string) error {
+// NewMissingImportError creates new error for missing export function
+func NewMissingImportError(fn wasmer.NativeFunction, err error, fnName string) error {
 	if fn == nil {
 		return trace.BadParameter("Function `%v` is not a function", fnName)
 	}

@@ -36,56 +36,54 @@ func (i *ProtobufInterop) ValidateImports(instance *wasmer.Instance) error {
 
 	i.allocFn, err = instance.Exports.GetFunction(allocFnName)
 	if i.allocFn == nil || err != nil {
-		NewBadFunctionError(i.allocFn, err, allocFnName)
+		return NewMissingImportError(i.allocFn, err, allocFnName)
 	}
 
 	i.freeFn, err = instance.Exports.GetFunction(freeFnName)
 	if i.freeFn == nil || err != nil {
-		NewBadFunctionError(i.freeFn, err, freeFnName)
+		return NewMissingImportError(i.freeFn, err, freeFnName)
 	}
 
 	i.getAddrFn, err = instance.Exports.GetFunction(getAddrFnName)
 	if i.getAddrFn == nil || err != nil {
-		NewBadFunctionError(i.getAddrFn, err, getAddrFnName)
+		return NewMissingImportError(i.getAddrFn, err, getAddrFnName)
 	}
 
 	i.getLengthFn, err = instance.Exports.GetFunction(getLengthFnName)
 	if i.getLengthFn == nil || err != nil {
-		NewBadFunctionError(i.getLengthFn, err, getLengthFnName)
+		return NewMissingImportError(i.getLengthFn, err, getLengthFnName)
 	}
 
 	return nil
 }
 
+func (i *ProtobufInterop) RegisterExports(store *wasmer.Store, importObject *wasmer.ImportObject) error {
+	return nil // No exports
+}
+
 // SendMessage allocates memory and copies proto.Message to the AS side, returns memory address
-func (i *ProtobufInterop) SendMessage(ctx context.Context, message proto.Message) error {
+func (i *ProtobufInterop) SendMessage(ctx context.Context, message proto.Message) (int32, error) {
 	size := proto.Size(message)
 	bytes, err := proto.Marshal(message)
 	if err != nil {
-		return trace.Wrap(err)
+		return 0, trace.Wrap(err)
 	}
 
 	rawAddrSize, err := i.host.Execute(ctx, i.allocFn, size)
 	if err != nil {
-		return trace.Wrap(err)
+		return 0, trace.Wrap(err)
 	}
 
 	i64 := wasmer.NewI64(rawAddrSize)
 	addrSize := i64.I64()
-	//dataView = addrSize >> 32
+	dataView := int32(addrSize >> 32)
 	addr := addrSize & 0xFFFFFFFF
-
-	// rawAddr, err := i.host.Execute(ctx, i.getAddrFn, handler)
-	// if err != nil {
-	// 	return nil, trace.Wrap(err)
-	// }
-	//addr := wasmer.NewI32(rawAddr)
 
 	// DMA copy
 	memory := i.host.GetMemory().Data()
 	copy(memory[addr:], bytes)
 
-	return nil
+	return dataView, nil
 }
 
 // FreeMessage frees previously allocated memory

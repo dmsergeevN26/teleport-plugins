@@ -33,7 +33,9 @@
         "binaryFile": "../lib/wasm/test.wasm",
         "exportRuntime": true,
         "debug": true,
-        "memoryBase": "0x100000"
+        "memoryBase": "0x100000",
+        "runtime": "minimal",
+        "initialMemory": 4096
       }
     },
     "options": {}

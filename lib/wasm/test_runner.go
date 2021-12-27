@@ -68,7 +68,7 @@ func (r *TestRunner) ValidateImports(instance *wasmer.Instance) error {
 
 	r.run, err = instance.Exports.GetFunction(testFnName)
 	if err != nil || r.run == nil {
-		return NewBadFunctionError(r.run, err, testFnName)
+		return NewMissingImportError(r.run, err, testFnName)
 	}
 
 	return nil

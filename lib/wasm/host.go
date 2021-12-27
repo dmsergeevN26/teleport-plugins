@@ -9,7 +9,7 @@ import (
 	"golang.org/x/sync/semaphore"
 )
 
-// Module represents a module which interacts with WASM
+// Module represents a module which interacts with WASM. It may provide a host functions and may depend on exports.
 type Module interface {
 	RegisterExports(store *wasmer.Store, importObject *wasmer.ImportObject) error
 	ValidateImports(instance *wasmer.Instance) error
@@ -21,15 +21,22 @@ type Executor interface {
 	GetMemory() *wasmer.Memory
 }
 
-// Host represents wasmer instance. It is responsible for module management and method execution.
-type Host struct {
+// Represents wasmer instance
+type Instance struct {
 	Executor
 
+	Memory   *wasmer.Memory
+	Instance *wasmer.Instance
+}
+
+// Host represents wasmer instance. It is responsible for module management and method execution.
+type Host struct {
+	concurrency  int
 	engine       *wasmer.Engine
 	store        *wasmer.Store
 	module       *wasmer.Module
 	importObject *wasmer.ImportObject
-	instance     *wasmer.Instance
+	instances    []Instance
 	memory       *wasmer.Memory
 	timeout      time.Duration
 	semaphore    *semaphore.Weighted
@@ -44,12 +51,14 @@ func NewHost(ctx context.Context, timeout time.Duration, concurrency int) *Host 
 	importObject := wasmer.NewImportObject()
 
 	return &Host{
+		concurrency:  concurrency,
 		engine:       engine,
 		store:        store,
 		semaphore:    semaphore.NewWeighted(int64(concurrency)),
 		timeout:      timeout,
 		importObject: importObject,
 		modules:      make([]Module, 0),
+		instances:    make([]Instance, concurrency),
 	}
 }
 
@@ -59,7 +68,6 @@ func (i *Host) RegisterModule(module Module) error {
 	if err != nil {
 		return trace.Wrap(err)
 	}
-
 	i.modules = append(i.modules, module)
 
 	return nil
@@ -79,21 +87,25 @@ func (i *Host) LoadPlugin(b []byte) error {
 		return trace.Wrap(err)
 	}
 
-	i.instance, err = wasmer.NewInstance(i.module, i.importObject)
-	if err != nil {
-		return trace.Wrap(err)
-	}
-
-	for _, b := range i.modules {
-		err := b.ValidateImports(i.instance)
+	for n := 0; n < i.concurrency; n++ {
+		instance, err := wasmer.NewInstance(i.module, i.importObject)
 		if err != nil {
 			return trace.Wrap(err)
 		}
-	}
 
-	i.memory, err = i.instance.Exports.GetMemory("memory")
-	if err != nil {
-		return trace.Wrap(err)
+		for _, b := range i.modules {
+			err := b.ValidateImports(instance)
+			if err != nil {
+				return trace.Wrap(err)
+			}
+		}
+
+		i.memory, err = i.instance.Exports.GetMemory("memory")
+		if err != nil {
+			return trace.Wrap(err)
+		}
+
+		i.instances[n] = instance{}
 	}
 
 	return nil
@@ -105,6 +117,7 @@ func (i *Host) Execute(ctx context.Context, fn wasmer.NativeFunction, args ...in
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
+	defer func() { i.semaphore.Release(1) }()
 
 	var ch chan interface{} = make(chan interface{})
 	var e chan error = make(chan error)
@@ -120,16 +133,12 @@ func (i *Host) Execute(ctx context.Context, fn wasmer.NativeFunction, args ...in
 
 	select {
 	case err := <-e:
-		i.semaphore.Release(1)
 		return nil, trace.Wrap(err)
 	case r := <-ch:
-		i.semaphore.Release(1)
 		return r, nil
 	case <-time.After(i.timeout):
-		i.semaphore.Release(1)
 		return nil, trace.LimitExceeded("WASM method execution timeout")
 	case <-ctx.Done():
-		i.semaphore.Release(1)
 		return nil, trace.Wrap(ctx.Err())
 	}
 }

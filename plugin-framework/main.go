@@ -73,6 +73,13 @@ func main() {
 		log.Fatal(err)
 	}
 
+	// var x []string = make([]string, 0)
+	// b, _ := proto.Marshal(testRunner.FixtureIndex.Get(1))
+	// for _, i := range b {
+	// 	x = append(x, strconv.Itoa(int(i)))
+	// }
+	// fmt.Println(strings.Join(x, ","))
+
 	switch kingpin.MustParse(app.Parse(os.Args[1:])) {
 	case test.FullCommand():
 		runTest(host, testRunner, log)
