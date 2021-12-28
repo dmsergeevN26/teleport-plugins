@@ -23,12 +23,12 @@ export function delay100ms(): void {
     sleep(100);
 }
 
-export function validatePBMessage(view: DataView):bool {
+export function validatePBMessage(view: DataView):i64 {
     const event = events.OneOf.decode(view)
     __unpin(changetype<usize>(view))
     if (event.UserCreate == null) {
-        return false
+        return 0
     }
     const userCreate = event.UserCreate as events.UserCreate;
-    return userCreate.Metadata.ClusterName == "test-cluster"
+    return userCreate.Metadata.Index
 }

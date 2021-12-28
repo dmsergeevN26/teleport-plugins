@@ -8,7 +8,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gogo/protobuf/proto"
 	"github.com/gravitational/teleport/api/types/events"
 	"github.com/gravitational/trace"
 	logrus "github.com/sirupsen/logrus/hooks/test"
@@ -251,17 +250,19 @@ func TestParallelProtobufInteropExecution(t *testing.T) {
 
 	count := 50000
 
-	oneof := &events.OneOf{}
-	err = proto.Unmarshal(protoMessage, oneof)
-	require.NoError(t, err)
-
 	wg := sync.WaitGroup{}
 	wg.Add(count)
 
 	for i := 0; i < count; i++ {
-		go func() {
+		go func(i int) {
 			in, err := p.Get(ctx)
 			require.NoError(t, err)
+
+			oneof := events.MustToOneOf(&events.UserCreate{
+				Metadata: events.Metadata{
+					Index: int64(i),
+				},
+			})
 
 			dataView, err := pb.For(in).SendMessage(ctx, oneof)
 			require.NoError(t, err)
@@ -272,13 +273,13 @@ func TestParallelProtobufInteropExecution(t *testing.T) {
 
 			result, err := f.For(in).ValidatePBMessage(ctx, dataView)
 			require.NoError(t, err)
-			require.Equal(t, result, int32(1))
+			require.Equal(t, result, int64(i))
 
 			err = p.Put(ctx, in)
 			require.NoError(t, err)
 
 			wg.Done()
-		}()
+		}(i)
 	}
 
 	wg.Wait()
