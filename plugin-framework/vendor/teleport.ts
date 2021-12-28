@@ -489,14 +489,6 @@ export function __protobuf_alloc(length: i32): u64 {
 }
 
 /**
- * Frees the protobuf memory segment. In case of AS, it releases it's GC lock.
- * @param addr Segment addr
- */
-export function __protobuf_free(view: DataView): void {
-    __unpin(changetype<usize>(view));
-}
-
-/**
  * Returns length of the memory segment.
  * @param data DataView instance
  * @returns Length

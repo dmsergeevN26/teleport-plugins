@@ -2,7 +2,6 @@ import { events } from '../vendor/teleport';
 import { google } from '../vendor/teleport';
 export {
     __protobuf_alloc,
-    __protobuf_free,
     __protobuf_getAddr,
     __protobuf_getLength,
 } from '../vendor/teleport';

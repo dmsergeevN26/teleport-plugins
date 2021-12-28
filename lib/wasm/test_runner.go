@@ -8,74 +8,75 @@ import (
 	wasmer "github.com/wasmerio/wasmer-go/wasmer"
 )
 
-const (
-	// testFnName represents the name of test runner function
-	testFnName = "test"
-	// getFixtureFnName represents the name of getFixtureBody() function
-	getFixtureBodyFnName = "getFixtureBody"
-	// getFixtureFnName represents the name of getFixtureSize() function
-	getFixtureSizeFnName = "getFixtureSize"
-)
-
-var (
-	// getFixtureSizeSignature represents wasmer getFixture() signature
-	getFixtureSizeSignature = wasmer.NewFunctionType(
-		wasmer.NewValueTypes(wasmer.I32), // n:i32
-		wasmer.NewValueTypes(wasmer.I32), // i32
-	)
-
-	// getFixtureBodySignature represents wasmer getFixture() signature
-	getFixtureBodySignature = wasmer.NewFunctionType(
-		wasmer.NewValueTypes(wasmer.I32, wasmer.I32), // n:i32, addr:usize
-		wasmer.NewValueTypes(),                       // void
-	)
-)
-
 // TestRunner represents WASM test runner
 type TestRunner struct {
-	Module
-	host         Executor
+	FixtureIndex *FixtureIndex
+	i            []*TestRunnerTrait
+}
+
+type TestRunnerTrait struct {
+	im           *ExecutionContext
 	FixtureIndex *FixtureIndex
 	run          wasmer.NativeFunction
 }
 
 // NewTestRunner creates new test runner instance
-func NewTestRunner(host Executor, dir string) (*TestRunner, error) {
+func NewTestRunner(dir string) (*TestRunner, error) {
 	index, err := NewFixtureIndex(dir)
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
 
-	return &TestRunner{
-		FixtureIndex: index,
-		host:         host,
-	}, nil
+	return &TestRunner{FixtureIndex: index, i: make([]*TestRunnerTrait, 0)}, nil
 }
 
-// RegisterExports registers getFixture() export
-func (r *TestRunner) RegisterExports(store *wasmer.Store, importObject *wasmer.ImportObject) error {
-	importObject.Register("test", map[string]wasmer.IntoExtern{
-		getFixtureBodyFnName: wasmer.NewFunction(store, getFixtureBodySignature, r.getFixtureBody),
-		getFixtureSizeFnName: wasmer.NewFunction(store, getFixtureSizeSignature, r.getFixtureSize),
-	})
-
-	return nil
+func (r *TestRunner) CreateTrait() Trait {
+	t := &TestRunnerTrait{FixtureIndex: r.FixtureIndex}
+	r.i = append(r.i, t)
+	return t
 }
 
-// ValidateImports validates that Test() function is present on WASM side
-func (r *TestRunner) ValidateImports(instance *wasmer.Instance) error {
-	var err error
-
-	r.run, err = instance.Exports.GetFunction(testFnName)
-	if err != nil || r.run == nil {
-		return NewMissingImportError(r.run, err, testFnName)
+func (r *TestRunner) For(im *ExecutionContext) *TestRunnerTrait {
+	for _, t := range r.i {
+		if t.im == im {
+			return t
+		}
 	}
 
 	return nil
 }
 
+func (r *TestRunnerTrait) Bind(im *ExecutionContext) error {
+	var err error
+
+	r.im = im
+
+	r.run, err = r.im.GetFunction("test")
+	if err != nil {
+		return trace.Wrap(err)
+	}
+
+	return nil
+}
+
+// ExportHostMethods registers getFixture() export
+func (r *TestRunnerTrait) Export(store *wasmer.Store, importObject *wasmer.ImportObject) error {
+	importObject.Register("test", map[string]wasmer.IntoExtern{
+		"getFixtureBody": wasmer.NewFunction(store, wasmer.NewFunctionType(
+			wasmer.NewValueTypes(wasmer.I32, wasmer.I32), // n:i32, addr:usize
+			wasmer.NewValueTypes(),                       // void
+		), r.getFixtureBody),
+		"getFixtureSize": wasmer.NewFunction(store, wasmer.NewFunctionType(
+			wasmer.NewValueTypes(wasmer.I32), // n:i32
+			wasmer.NewValueTypes(wasmer.I32), // i32
+		), r.getFixtureSize),
+	})
+
+	return nil
+}
+
 // getFixtureSize returns size of a fixture number n
-func (r *TestRunner) getFixtureSize(args []wasmer.Value) ([]wasmer.Value, error) {
+func (r *TestRunnerTrait) getFixtureSize(args []wasmer.Value) ([]wasmer.Value, error) {
 	n := int(args[0].I32())
 
 	fixture := r.FixtureIndex.Get(n)
@@ -89,10 +90,10 @@ func (r *TestRunner) getFixtureSize(args []wasmer.Value) ([]wasmer.Value, error)
 }
 
 // getFixtureBody copies fixture number n to the provided memory segment
-func (r *TestRunner) getFixtureBody(args []wasmer.Value) ([]wasmer.Value, error) {
+func (r *TestRunnerTrait) getFixtureBody(args []wasmer.Value) ([]wasmer.Value, error) {
 	n := int(args[0].I32())
 	addr := int(args[1].I32())
-	memory := r.host.GetMemory()
+	memory := r.im.Memory
 
 	fixture := r.FixtureIndex.Get(n)
 	if fixture == nil {
@@ -111,8 +112,8 @@ func (r *TestRunner) getFixtureBody(args []wasmer.Value) ([]wasmer.Value, error)
 }
 
 // Run runs test suite
-func (r *TestRunner) Run(ctx context.Context) error {
-	_, err := r.host.Execute(ctx, r.run)
+func (r *TestRunnerTrait) Run(ctx context.Context) error {
+	_, err := r.im.Execute(ctx, r.run)
 	if err != nil {
 		return trace.Wrap(err)
 	}

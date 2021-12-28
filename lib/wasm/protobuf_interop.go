@@ -10,66 +10,79 @@ import (
 
 const (
 	allocFnName     = "__protobuf_alloc"
-	freeFnName      = "__protobuf_free"
 	getAddrFnName   = "__protobuf_getAddr"
 	getLengthFnName = "__protobuf_getLength"
 )
 
-// ProtobufInterop represents protobuf interop methods
 type ProtobufInterop struct {
-	Module
-	host        Executor
-	allocFn     wasmer.NativeFunction
-	freeFn      wasmer.NativeFunction
-	getAddrFn   wasmer.NativeFunction
-	getLengthFn wasmer.NativeFunction
+	i []*ProtobufInteropTrait
+}
+
+// ProtobufInterop represents protobuf interop methods
+type ProtobufInteropTrait struct {
+	im        *ExecutionContext
+	alloc     wasmer.NativeFunction
+	getAddr   wasmer.NativeFunction
+	getLength wasmer.NativeFunction
 }
 
 // NewProtobufInterop creates new ProtobufInterop bindings
-func NewProtobufInterop(h Executor) *ProtobufInterop {
-	return &ProtobufInterop{host: h}
+func NewProtobufInterop() *ProtobufInterop {
+	return &ProtobufInterop{i: make([]*ProtobufInteropTrait, 0)}
 }
 
-// ValidateImports validates that protobuf interop functions exists in the module
-func (i *ProtobufInterop) ValidateImports(instance *wasmer.Instance) error {
-	var err error
+func (e *ProtobufInterop) CreateTrait() Trait {
+	t := &ProtobufInteropTrait{}
+	e.i = append(e.i, t)
+	return t
+}
 
-	i.allocFn, err = instance.Exports.GetFunction(allocFnName)
-	if i.allocFn == nil || err != nil {
-		return NewMissingImportError(i.allocFn, err, allocFnName)
-	}
-
-	i.freeFn, err = instance.Exports.GetFunction(freeFnName)
-	if i.freeFn == nil || err != nil {
-		return NewMissingImportError(i.freeFn, err, freeFnName)
-	}
-
-	i.getAddrFn, err = instance.Exports.GetFunction(getAddrFnName)
-	if i.getAddrFn == nil || err != nil {
-		return NewMissingImportError(i.getAddrFn, err, getAddrFnName)
-	}
-
-	i.getLengthFn, err = instance.Exports.GetFunction(getLengthFnName)
-	if i.getLengthFn == nil || err != nil {
-		return NewMissingImportError(i.getLengthFn, err, getLengthFnName)
+func (e *ProtobufInterop) For(im *ExecutionContext) *ProtobufInteropTrait {
+	for _, t := range e.i {
+		if t.im == im {
+			return t
+		}
 	}
 
 	return nil
 }
 
-func (i *ProtobufInterop) RegisterExports(store *wasmer.Store, importObject *wasmer.ImportObject) error {
-	return nil // No exports
+func (i *ProtobufInteropTrait) Bind(im *ExecutionContext) error {
+	var err error
+
+	i.im = im
+
+	i.alloc, err = im.GetFunction(allocFnName)
+	if err != nil {
+		return trace.Wrap(err)
+	}
+
+	i.getAddr, err = im.GetFunction(getAddrFnName)
+	if err != nil {
+		return trace.Wrap(err)
+	}
+
+	i.getLength, err = im.GetFunction(getLengthFnName)
+	if err != nil {
+		return trace.Wrap(err)
+	}
+
+	return nil
+}
+
+func (i *ProtobufInteropTrait) Export(store *wasmer.Store, importObject *wasmer.ImportObject) error {
+	return nil
 }
 
 // SendMessage allocates memory and copies proto.Message to the AS side, returns memory address
-func (i *ProtobufInterop) SendMessage(ctx context.Context, message proto.Message) (int32, error) {
+func (i *ProtobufInteropTrait) SendMessage(ctx context.Context, message proto.Message) (int32, error) {
 	size := proto.Size(message)
 	bytes, err := proto.Marshal(message)
 	if err != nil {
 		return 0, trace.Wrap(err)
 	}
 
-	rawAddrSize, err := i.host.Execute(ctx, i.allocFn, size)
+	rawAddrSize, err := i.im.Execute(ctx, i.alloc, size)
 	if err != nil {
 		return 0, trace.Wrap(err)
 	}
@@ -80,18 +93,8 @@ func (i *ProtobufInterop) SendMessage(ctx context.Context, message proto.Message
 	addr := addrSize & 0xFFFFFFFF
 
 	// DMA copy
-	memory := i.host.GetMemory().Data()
+	memory := i.im.Memory.Data()
 	copy(memory[addr:], bytes)
 
 	return dataView, nil
-}
-
-// FreeMessage frees previously allocated memory
-func (i *ProtobufInterop) FreeMessage(ctx context.Context, handler int32) error {
-	_, err := i.host.Execute(ctx, i.freeFn, handler)
-	if err != nil {
-		return trace.Wrap(err)
-	}
-
-	return nil
 }

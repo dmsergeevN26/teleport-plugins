@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	defaultConcurrency = 4
+	defaultConcurrency = 1
 	defaultTimeout     = time.Second * 30
 )
 
@@ -26,18 +26,15 @@ var (
 	fixtureName     = fixture.Arg("name", "Fixture name").Required().String()
 )
 
-func runTest(host *wasm.Host, testRunner *wasm.TestRunner, log logrus.FieldLogger) {
-	b, err := os.ReadFile("build/test.wasm")
+func runTest(pool *wasm.ExecutionContextPool, testRunner *wasm.TestRunner, log logrus.FieldLogger) {
+	ctx := context.Background()
+
+	c, err := pool.Get(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	err = host.LoadPlugin(b)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	err = testRunner.Run(context.Background())
+	err = testRunner.For(c).Run(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -55,34 +52,28 @@ func main() {
 	logger.Init()
 	log := logger.Standard()
 
-	host := wasm.NewHost(context.Background(), defaultTimeout, defaultConcurrency)
-
-	testRunner, err := wasm.NewTestRunner(host, "fixtures")
+	b, err := os.ReadFile("build/test.wasm")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	err = host.RegisterModule(testRunner)
+	asEnv := wasm.NewAssemblyScriptEnv(log)
+	testRunner, err := wasm.NewTestRunner("fixtures")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	env := wasm.NewAssemblyScriptEnv(host, log)
-	err = host.RegisterModule(env)
+	pool, err := wasm.NewExecutionContextPool(wasm.ExecutionContextPoolOptions{
+		Timeout:     defaultTimeout,
+		Concurrency: defaultConcurrency,
+		Bytes:       b,
+	}, asEnv, testRunner)
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	// var x []string = make([]string, 0)
-	// b, _ := proto.Marshal(testRunner.FixtureIndex.Get(1))
-	// for _, i := range b {
-	// 	x = append(x, strconv.Itoa(int(i)))
-	// }
-	// fmt.Println(strings.Join(x, ","))
-
 	switch kingpin.MustParse(app.Parse(os.Args[1:])) {
 	case test.FullCommand():
-		runTest(host, testRunner, log)
+		runTest(pool, testRunner, log)
 	case fixture.FullCommand():
 		genFixture(testRunner, log, *fixtureTemplate, *fixtureName)
 	}

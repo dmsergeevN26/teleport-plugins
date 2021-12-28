@@ -12,82 +12,89 @@ import (
 	"github.com/wasmerio/wasmer-go/wasmer"
 )
 
-var (
-	// AssemblyScript abort() signature
-	asAbortSignature = wasmer.NewFunctionType(
-		wasmer.NewValueTypes(
-			wasmer.I32, // message: string | null
-			wasmer.I32, // fileName: string | null,
-			wasmer.I32, // lineNumber: i32
-			wasmer.I32, // columnNumber: i32
-		),
-		wasmer.NewValueTypes(), // void
-	)
-
-	// AssemblyScript trace() signature
-	asTraceSignature = wasmer.NewFunctionType(
-		wasmer.NewValueTypes(
-			wasmer.I32, // message: string
-			wasmer.I32, // n:i32
-			wasmer.F64, // a0?:f64
-			wasmer.F64, // a1?:f64
-			wasmer.F64, // a2?:F64
-			wasmer.F64, // a3?:f64
-			wasmer.F64, // a4?:f64
-		),
-		wasmer.NewValueTypes(), // void
-	)
-
-	// seed()
-	asSeed = wasmer.NewFunctionType(
-		wasmer.NewValueTypes(),
-		wasmer.NewValueTypes(
-			wasmer.F64,
-		),
-	)
-)
-
-// AsssemblyScriptEnv represents AssemblyScript environment functions
+// AsssemblyScriptEnv represents AssemblyScript env functions repository
 type AsssemblyScriptEnv struct {
-	Module
-
-	host *Host
-	log  log.FieldLogger
+	log log.FieldLogger
+	i   []*AsssemblyScriptEnvTrait
 }
 
-func NewAssemblyScriptEnv(host *Host, log log.FieldLogger) *AsssemblyScriptEnv {
-	return &AsssemblyScriptEnv{host: host, log: log}
+// AsssemblyScriptEnvInstance represents AssemblyScript functions bound to specific instance
+type AsssemblyScriptEnvTrait struct {
+	im  *ExecutionContext
+	log log.FieldLogger
+}
+
+// NewAssemblyScriptEnv creates new AssemblyScriptEnv collection instance
+func NewAssemblyScriptEnv(log log.FieldLogger) *AsssemblyScriptEnv {
+	return &AsssemblyScriptEnv{log: log, i: make([]*AsssemblyScriptEnvTrait, 0)}
+}
+
+func (e *AsssemblyScriptEnv) CreateTrait() Trait {
+	t := &AsssemblyScriptEnvTrait{log: e.log}
+	e.i = append(e.i, t)
+	return t
+}
+
+func (e *AsssemblyScriptEnvTrait) Bind(im *ExecutionContext) error {
+	e.im = im
+	return nil
 }
 
 // RegisterExports registers protobuf interop exports (nothing in our case)
-func (e *AsssemblyScriptEnv) RegisterExports(store *wasmer.Store, importObject *wasmer.ImportObject) error {
+func (e *AsssemblyScriptEnvTrait) Export(store *wasmer.Store, importObject *wasmer.ImportObject) error {
 	importObject.Register("env", map[string]wasmer.IntoExtern{
-		"abort": wasmer.NewFunction(store, asAbortSignature, e.abort),
-		"trace": wasmer.NewFunction(store, asTraceSignature, e.trace),
-		"seed":  wasmer.NewFunction(store, asSeed, e.seed),
+		"abort": wasmer.NewFunction(store, wasmer.NewFunctionType(
+			wasmer.NewValueTypes(
+				wasmer.I32, // message: string | null
+				wasmer.I32, // fileName: string | null,
+				wasmer.I32, // lineNumber: i32
+				wasmer.I32, // columnNumber: i32
+			),
+			wasmer.NewValueTypes(), // void
+		), e.abort),
+		"trace": wasmer.NewFunction(store, wasmer.NewFunctionType(
+			wasmer.NewValueTypes(
+				wasmer.I32, // message: string
+				wasmer.I32, // n:i32
+				wasmer.F64, // a0?:f64
+				wasmer.F64, // a1?:f64
+				wasmer.F64, // a2?:F64
+				wasmer.F64, // a3?:f64
+				wasmer.F64, // a4?:f64
+			),
+			wasmer.NewValueTypes(), // void
+		), e.trace),
+		"seed": wasmer.NewFunction(store, wasmer.NewFunctionType(
+			wasmer.NewValueTypes(),
+			wasmer.NewValueTypes(
+				wasmer.F64,
+			),
+		), e.seed),
 	})
 
 	importObject.Register("Date", map[string]wasmer.IntoExtern{
-		"now": wasmer.NewFunction(store, asSeed, e.dateNow),
+		"now": wasmer.NewFunction(store, wasmer.NewFunctionType(
+			wasmer.NewValueTypes(),
+			wasmer.NewValueTypes(wasmer.F64),
+		), e.dateNow),
 	})
-
 	return nil
 }
 
 // dateNow exports `Date`.`now`, which is required for datetime ops
-func (e *AsssemblyScriptEnv) dateNow(args []wasmer.Value) ([]wasmer.Value, error) {
+func (e *AsssemblyScriptEnvTrait) dateNow(args []wasmer.Value) ([]wasmer.Value, error) {
 	return []wasmer.Value{wasmer.NewF64(float64(time.Now().UTC().UnixMilli()))}, nil
 }
 
 // ValidateImports validates that protobuf interop functions exists in the module
-func (e *AsssemblyScriptEnv) ValidateImports(instance *wasmer.Instance) error {
+func (e *AsssemblyScriptEnvTrait) ValidateImports(instance *wasmer.Instance) error {
 	return nil // No imports
 }
 
 // getString reads and returns AssemblyScript string by it's memory address. It assumes that
 // a string has the standard AS GC header.
-func (e *AsssemblyScriptEnv) getString(s wasmer.Value) string {
-	memory := e.host.GetMemory()
+func (e *AsssemblyScriptEnvTrait) getString(s wasmer.Value) string {
+	memory := e.im.Memory
 
 	addr := s.I32()
 	if addr == 0 {
@@ -114,7 +121,7 @@ func (e *AsssemblyScriptEnv) getString(s wasmer.Value) string {
 }
 
 // asAbort AssemblyScript abort() function
-func (e *AsssemblyScriptEnv) abort(args []wasmer.Value) ([]wasmer.Value, error) {
+func (e *AsssemblyScriptEnvTrait) abort(args []wasmer.Value) ([]wasmer.Value, error) {
 	e.log.Error(fmt.Sprintf(
 		"Wasmer: abort! %v (%v:%v:%v)",
 		e.getString(args[0]),
@@ -127,7 +134,7 @@ func (e *AsssemblyScriptEnv) abort(args []wasmer.Value) ([]wasmer.Value, error) 
 }
 
 // asAbort AssemblyScript trace() function
-func (e *AsssemblyScriptEnv) trace(args []wasmer.Value) ([]wasmer.Value, error) {
+func (e *AsssemblyScriptEnvTrait) trace(args []wasmer.Value) ([]wasmer.Value, error) {
 	s := e.getString(args[0])
 
 	if len(args) > 1 {
@@ -153,6 +160,6 @@ func (e *AsssemblyScriptEnv) trace(args []wasmer.Value) ([]wasmer.Value, error) 
 }
 
 // asSeed implements random seed function
-func (e *AsssemblyScriptEnv) seed(args []wasmer.Value) ([]wasmer.Value, error) {
+func (e *AsssemblyScriptEnvTrait) seed(args []wasmer.Value) ([]wasmer.Value, error) {
 	return []wasmer.Value{wasmer.NewF64(float64(time.Now().UnixNano()))}, nil
 }

@@ -3,7 +3,6 @@ import { events } from '../vendor/teleport';
 
 export {
     __protobuf_alloc,
-    __protobuf_free,
     __protobuf_getAddr,
     __protobuf_getLength,
 } from '../vendor/teleport';
@@ -25,8 +24,8 @@ export function delay100ms(): void {
 }
 
 export function validatePBMessage(view: DataView):bool {
-    return true
     const event = events.OneOf.decode(view)
+    __unpin(changetype<usize>(view))
     if (event.UserCreate == null) {
         return false
     }
