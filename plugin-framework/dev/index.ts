@@ -17,6 +17,7 @@ export function fail():i32 {
 
 export function infinite():i32 {
     while(1);
+    return 0;
 }
 
 export function delay100ms(): void {
