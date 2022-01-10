@@ -134,7 +134,7 @@ func NewSanitizedTeleportEvent(e *TeleportEvent) *SanitizedTeleportEvent {
 		TeleportEvent: e,
 	}
 
-	evt.setSessionEnc(e.Event)
+	evt.setSessionEnd(e.Event)
 	evt.setEvent(e.Event)
 	evt.setLoginData(e.Event)
 
@@ -164,8 +164,8 @@ func (e *SanitizedTeleportEvent) setEvent(evt events.AuditEvent) {
 	}
 }
 
-// setSessionID sets session id for session end event
-func (e *SanitizedTeleportEvent) setSessionEnc(evt events.AuditEvent) {
+// setSessionEnd sets flag session end event
+func (e *SanitizedTeleportEvent) setSessionEnd(evt events.AuditEvent) {
 	if e.Type != sessionEndType {
 		return
 	}
