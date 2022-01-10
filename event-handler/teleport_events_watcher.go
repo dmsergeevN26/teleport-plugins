@@ -144,7 +144,7 @@ func (t *TeleportEventsWatcher) fetch(ctx context.Context) error {
 
 	// Convert batch to TeleportEvent
 	for i, e := range b {
-		evt, err := NewTeleportEvent(e, t.cursor)
+		evt, err := NewTeleportEvent(e, t.cursor, "")
 		if err != nil {
 			return trace.Wrap(err)
 		}

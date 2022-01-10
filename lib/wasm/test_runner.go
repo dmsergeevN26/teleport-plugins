@@ -11,11 +11,11 @@ import (
 // TestRunner represents WASM test runner
 type TestRunner struct {
 	FixtureIndex *FixtureIndex
-	i            []*TestRunnerTrait
+	traits       []*TestRunnerTrait
 }
 
 type TestRunnerTrait struct {
-	im           *ExecutionContext
+	ec           *ExecutionContext
 	FixtureIndex *FixtureIndex
 	run          wasmer.NativeFunction
 }
@@ -27,18 +27,18 @@ func NewTestRunner(dir string) (*TestRunner, error) {
 		return nil, trace.Wrap(err)
 	}
 
-	return &TestRunner{FixtureIndex: index, i: make([]*TestRunnerTrait, 0)}, nil
+	return &TestRunner{FixtureIndex: index, traits: make([]*TestRunnerTrait, 0)}, nil
 }
 
 func (r *TestRunner) CreateTrait() Trait {
 	t := &TestRunnerTrait{FixtureIndex: r.FixtureIndex}
-	r.i = append(r.i, t)
+	r.traits = append(r.traits, t)
 	return t
 }
 
-func (r *TestRunner) For(im *ExecutionContext) *TestRunnerTrait {
-	for _, t := range r.i {
-		if t.im == im {
+func (r *TestRunner) For(ec *ExecutionContext) *TestRunnerTrait {
+	for _, t := range r.traits {
+		if t.ec == ec {
 			return t
 		}
 	}
@@ -46,12 +46,12 @@ func (r *TestRunner) For(im *ExecutionContext) *TestRunnerTrait {
 	return nil
 }
 
-func (r *TestRunnerTrait) Bind(im *ExecutionContext) error {
+func (r *TestRunnerTrait) Bind(ec *ExecutionContext) error {
 	var err error
 
-	r.im = im
+	r.ec = ec
 
-	r.run, err = r.im.GetFunction("test")
+	r.run, err = r.ec.GetFunction("test")
 	if err != nil {
 		return trace.Wrap(err)
 	}
@@ -93,7 +93,7 @@ func (r *TestRunnerTrait) getFixtureSize(args []wasmer.Value) ([]wasmer.Value, e
 func (r *TestRunnerTrait) getFixtureBody(args []wasmer.Value) ([]wasmer.Value, error) {
 	n := int(args[0].I32())
 	addr := int(args[1].I32())
-	memory := r.im.Memory
+	memory := r.ec.Memory
 
 	fixture := r.FixtureIndex.Get(n)
 	if fixture == nil {
@@ -113,7 +113,7 @@ func (r *TestRunnerTrait) getFixtureBody(args []wasmer.Value) ([]wasmer.Value, e
 
 // Run runs test suite
 func (r *TestRunnerTrait) Run(ctx context.Context) error {
-	_, err := r.im.Execute(ctx, r.run)
+	_, err := r.ec.Execute(ctx, r.run)
 	if err != nil {
 		return trace.Wrap(err)
 	}

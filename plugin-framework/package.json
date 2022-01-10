@@ -19,9 +19,9 @@
   },
   "scripts": {
     "clean": "rimraf build tmp",
-    "asbuild:development": "asc assembly/index.ts --target development",
-    "asbuild:production": "asc assembly/index.ts --target production",
-    "asbuild:test": "asc assembly/index.test.ts --target test",
+    "asbuild:development": "asc assembly/${TS_FILE:-index}.ts --target development",
+    "asbuild:production": "asc assembly/${TS_FILE:-index}.ts --target production",
+    "asbuild:test": "asc assembly/${TS_FILE:-index}.test.ts --target test",
     "asbuild:dev": "asc dev/index.ts --target dev",
     "asbuild": "npm run asbuild:development && npm run asbuild:production && npm run asbuild:test"
   },

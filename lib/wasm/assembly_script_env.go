@@ -14,29 +14,29 @@ import (
 
 // AsssemblyScriptEnv represents AssemblyScript env functions repository
 type AsssemblyScriptEnv struct {
-	log log.FieldLogger
-	i   []*AsssemblyScriptEnvTrait
+	log    log.FieldLogger
+	traits []*AsssemblyScriptEnvTrait
 }
 
 // AsssemblyScriptEnvInstance represents AssemblyScript functions bound to specific instance
 type AsssemblyScriptEnvTrait struct {
-	im  *ExecutionContext
+	ec  *ExecutionContext
 	log log.FieldLogger
 }
 
 // NewAssemblyScriptEnv creates new AssemblyScriptEnv collection instance
 func NewAssemblyScriptEnv(log log.FieldLogger) *AsssemblyScriptEnv {
-	return &AsssemblyScriptEnv{log: log, i: make([]*AsssemblyScriptEnvTrait, 0)}
+	return &AsssemblyScriptEnv{log: log, traits: make([]*AsssemblyScriptEnvTrait, 0)}
 }
 
 func (e *AsssemblyScriptEnv) CreateTrait() Trait {
 	t := &AsssemblyScriptEnvTrait{log: e.log}
-	e.i = append(e.i, t)
+	e.traits = append(e.traits, t)
 	return t
 }
 
-func (e *AsssemblyScriptEnvTrait) Bind(im *ExecutionContext) error {
-	e.im = im
+func (e *AsssemblyScriptEnvTrait) Bind(ec *ExecutionContext) error {
+	e.ec = ec
 	return nil
 }
 
@@ -94,7 +94,7 @@ func (e *AsssemblyScriptEnvTrait) ValidateImports(instance *wasmer.Instance) err
 // getString reads and returns AssemblyScript string by it's memory address. It assumes that
 // a string has the standard AS GC header.
 func (e *AsssemblyScriptEnvTrait) getString(s wasmer.Value) string {
-	memory := e.im.Memory
+	memory := e.ec.Memory
 
 	addr := s.I32()
 	if addr == 0 {

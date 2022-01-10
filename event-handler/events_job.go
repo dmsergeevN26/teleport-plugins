@@ -100,20 +100,29 @@ func (j *EventsJob) runPolling(ctx context.Context) error {
 
 // handleEvent processes an event
 func (j *EventsJob) handleEvent(ctx context.Context, evt *TeleportEvent) error {
+	e, err := j.callPlugin(ctx, evt)
+	if err != nil {
+		return trace.Wrap(err)
+	}
+
+	if e == nil {
+		return nil
+	}
+
 	// Send event to Teleport
-	err := j.sendEvent(ctx, evt)
+	err = j.sendEvent(ctx, e)
 	if err != nil {
 		return trace.Wrap(err)
 	}
 
 	// Start session ingestion if needed
-	if evt.IsSessionEnd {
-		j.app.RegisterSession(ctx, evt)
+	if e.IsSessionEnd {
+		j.app.RegisterSession(ctx, e.TeleportEvent)
 	}
 
 	// If the event is login event
-	if evt.IsFailedLogin {
-		err := j.TryLockUser(ctx, evt)
+	if e.IsFailedLogin {
+		err := j.TryLockUser(ctx, e)
 		if err != nil {
 			return trace.Wrap(err)
 		}
@@ -126,13 +135,22 @@ func (j *EventsJob) handleEvent(ctx context.Context, evt *TeleportEvent) error {
 	return nil
 }
 
+// callPlugin calls WASM plugin on an event
+func (j *EventsJob) callPlugin(ctx context.Context, evt *TeleportEvent) (*SanitizedTeleportEvent, error) {
+	if j.app.wasmHandleEvent == nil {
+		return NewSanitizedTeleportEvent(evt), nil
+	}
+
+	return j.app.wasmHandleEvent.HandleTeleportEvent(ctx, j.app.wasmPool, evt)
+}
+
 // sendEvent sends an event to Teleport
-func (j *EventsJob) sendEvent(ctx context.Context, evt *TeleportEvent) error {
+func (j *EventsJob) sendEvent(ctx context.Context, evt *SanitizedTeleportEvent) error {
 	return j.app.SendEvent(ctx, j.app.Config.FluentdURL, evt)
 }
 
 // TryLockUser locks user if they exceeded failed attempts
-func (j *EventsJob) TryLockUser(ctx context.Context, evt *TeleportEvent) error {
+func (j *EventsJob) TryLockUser(ctx context.Context, evt *SanitizedTeleportEvent) error {
 	if !j.app.Config.LockEnabled || j.app.Config.DryRun {
 		return nil
 	}

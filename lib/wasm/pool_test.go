@@ -39,10 +39,6 @@ func (e *testTraits) CreateTrait() Trait {
 	return t
 }
 
-func (e *testTraits) Bind(t Trait, im *ExecutionContext) {
-	t.Bind(im)
-}
-
 func (e *testTraits) For(im *ExecutionContext) *testTrait {
 	for _, t := range e.i {
 		if t.im == im {

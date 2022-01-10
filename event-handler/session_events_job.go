@@ -182,25 +182,32 @@ Loop:
 				break Loop // Break the main loop
 			}
 
-			e, err := NewTeleportEvent(evt, "")
+			ec, err := NewTeleportEvent(evt, "", s.ID)
 			if err != nil {
 				return false, trace.Wrap(err)
 			}
 
-			_, ok := j.app.Config.SkipSessionTypes[e.Type]
-			if !ok {
-				err := j.app.SendEvent(ctx, url, e)
+			e, err := j.callPlugin(ctx, ec)
+			if err != nil {
+				return false, trace.Wrap(err)
+			}
 
-				if err != nil && trace.IsConnectionProblem(err) {
-					return true, trace.Wrap(err)
-				}
-				if err != nil {
-					return false, trace.Wrap(err)
+			if e != nil {
+				_, ok := j.app.Config.SkipSessionTypes[e.Type]
+				if !ok {
+					err := j.app.SendEvent(ctx, url, e)
+
+					if err != nil && trace.IsConnectionProblem(err) {
+						return true, trace.Wrap(err)
+					}
+					if err != nil {
+						return false, trace.Wrap(err)
+					}
 				}
 			}
 
 			// Set session index
-			err = j.app.State.SetSessionIndex(s.ID, e.Index)
+			err = j.app.State.SetSessionIndex(s.ID, ec.Index)
 			if err != nil {
 				return true, trace.Wrap(err)
 			}
@@ -220,6 +227,15 @@ Loop:
 	}
 
 	return false, nil
+}
+
+// callPlugin calls WASM plugin on an event
+func (j *SessionEventsJob) callPlugin(ctx context.Context, evt *TeleportEvent) (*SanitizedTeleportEvent, error) {
+	if j.app.wasmHandleEvent == nil {
+		return NewSanitizedTeleportEvent(evt), nil
+	}
+
+	return j.app.wasmHandleEvent.HandleTeleportEvent(ctx, j.app.wasmPool, evt)
 }
 
 // Register starts session event ingestion

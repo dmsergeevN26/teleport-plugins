@@ -15,12 +15,12 @@ const (
 )
 
 type ProtobufInterop struct {
-	i []*ProtobufInteropTrait
+	traits []*ProtobufInteropTrait
 }
 
 // ProtobufInterop represents protobuf interop methods
 type ProtobufInteropTrait struct {
-	im        *ExecutionContext
+	ec        *ExecutionContext
 	alloc     wasmer.NativeFunction
 	getAddr   wasmer.NativeFunction
 	getLength wasmer.NativeFunction
@@ -28,18 +28,18 @@ type ProtobufInteropTrait struct {
 
 // NewProtobufInterop creates new ProtobufInterop bindings
 func NewProtobufInterop() *ProtobufInterop {
-	return &ProtobufInterop{i: make([]*ProtobufInteropTrait, 0)}
+	return &ProtobufInterop{traits: make([]*ProtobufInteropTrait, 0)}
 }
 
 func (e *ProtobufInterop) CreateTrait() Trait {
 	t := &ProtobufInteropTrait{}
-	e.i = append(e.i, t)
+	e.traits = append(e.traits, t)
 	return t
 }
 
-func (e *ProtobufInterop) For(im *ExecutionContext) *ProtobufInteropTrait {
-	for _, t := range e.i {
-		if t.im == im {
+func (e *ProtobufInterop) For(ec *ExecutionContext) *ProtobufInteropTrait {
+	for _, t := range e.traits {
+		if t.ec == ec {
 			return t
 		}
 	}
@@ -47,22 +47,22 @@ func (e *ProtobufInterop) For(im *ExecutionContext) *ProtobufInteropTrait {
 	return nil
 }
 
-func (i *ProtobufInteropTrait) Bind(im *ExecutionContext) error {
+func (i *ProtobufInteropTrait) Bind(ec *ExecutionContext) error {
 	var err error
 
-	i.im = im
+	i.ec = ec
 
-	i.alloc, err = im.GetFunction(allocFnName)
+	i.alloc, err = ec.GetFunction(allocFnName)
 	if err != nil {
 		return trace.Wrap(err)
 	}
 
-	i.getAddr, err = im.GetFunction(getAddrFnName)
+	i.getAddr, err = ec.GetFunction(getAddrFnName)
 	if err != nil {
 		return trace.Wrap(err)
 	}
 
-	i.getLength, err = im.GetFunction(getLengthFnName)
+	i.getLength, err = ec.GetFunction(getLengthFnName)
 	if err != nil {
 		return trace.Wrap(err)
 	}
@@ -82,7 +82,7 @@ func (i *ProtobufInteropTrait) SendMessage(ctx context.Context, message proto.Me
 		return 0, trace.Wrap(err)
 	}
 
-	rawAddrSize, err := i.im.Execute(ctx, i.alloc, size)
+	rawAddrSize, err := i.ec.Execute(ctx, i.alloc, size)
 	if err != nil {
 		return 0, trace.Wrap(err)
 	}
@@ -93,8 +93,32 @@ func (i *ProtobufInteropTrait) SendMessage(ctx context.Context, message proto.Me
 	addr := addrSize & 0xFFFFFFFF
 
 	// DMA copy
-	memory := i.im.Memory.Data()
+	memory := i.ec.Memory.Data()
 	copy(memory[addr:], bytes)
 
 	return dataView, nil
+}
+
+// ReceiveMessage decodes message from WASM side. Type of the message must be known onset.
+func (i *ProtobufInteropTrait) ReceiveMessage(ctx context.Context, handle interface{}, m proto.Message) error {
+	rawLength, err := i.ec.Execute(ctx, i.getLength, handle)
+	if err != nil {
+		return trace.Wrap(err)
+	}
+
+	rawAddr, err := i.ec.Execute(ctx, i.getAddr, handle)
+	if err != nil {
+		return trace.Wrap(err)
+	}
+
+	length := wasmer.NewI32(rawLength)
+	addr := wasmer.NewI32(rawAddr)
+
+	bytes := make([]byte, length.I32())
+	memory := i.ec.Memory.Data()
+	copy(bytes, memory[addr.I32():addr.I32()+length.I32()])
+
+	proto.Unmarshal(bytes, m)
+
+	return nil
 }

@@ -44,6 +44,7 @@ function hideEvent(event: Event): Event | null {
     return event;
 }
 
+// Adds label to access request create
 function addRequiredLabels(event: Event): Event | null {
     if (event.AccessRequestCreate != null) {
         const request = event.AccessRequestCreate as events.AccessRequestCreate;
@@ -52,6 +53,12 @@ function addRequiredLabels(event: Event): Event | null {
         value.string_value = "yes"
 
         request.Annotations.fields.set("seen-by-us", value)
+    }
+
+    if (event.RoleCreate != null) {
+        const roleCreate = event.RoleCreate as events.RoleCreate;
+
+        roleCreate.Metadata.ClusterName = "changed-cluster-name"
     }
 
     return event;

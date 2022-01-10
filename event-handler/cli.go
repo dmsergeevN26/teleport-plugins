@@ -116,9 +116,7 @@ type WASMConfig struct {
 	// WASMConcurrency represents WASM method execution concurrency
 	WASMConcurrency int `help:"WASM method execution concurrency" default:"5" env:"WASM_CONCURRENCY"`
 	// WASMHandleEventFn is the handle event method name
-	WASMHandleEventFn string `help:"WASM method name for handleEvent function name" default:"handleEvent" env:"WASM_FN"`
-	// WASMHandleSessionEventFn is the handle session event method name
-	WASMHandleSessionEventFn string `help:"WASM method name for handleSessionEvent function name" env:"WASM_SESSION_FN"`
+	WASMHandleEvent string `help:"WASM method name for handleEvent function name" default:"handleEvent" env:"WASM_FN"`
 	// WASMPluginName is the WASM plugin file name
 	WASMPlugin string `help:"WASM plugin binary file name" type:"existingfile" env:"WASM_PLUGIN_FILE"`
 }
@@ -236,7 +234,7 @@ func (c *StartCmdConfig) Dump(ctx context.Context) {
 
 	if c.WASMPlugin != "" {
 		log.WithField("plugin", c.WASMPlugin).Info("WASM plugin")
-		log.WithField("base", c.WASMHandleEventFn).WithField("session", c.WASMHandleSessionEventFn).Info("WASM handleEvent functions")
+		log.WithField("base", c.WASMHandleEvent).Info("WASM handleEvent functions")
 		log.WithField("concurrency", c.WASMConcurrency).WithField("timeout", c.WASMTimeout).Info("WASM arguments")
 	} else {
 		log.Info("WASM plugin is not activated")

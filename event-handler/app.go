@@ -44,8 +44,10 @@ type App struct {
 	eventsJob *EventsJob
 	// sessionEventsJob represents session events consumer job
 	sessionEventsJob *SessionEventsJob
-	// WASM host
-	wasmHost *wasm.Host
+	// WASM execution context pool
+	wasmPool *wasm.ExecutionContextPool
+	// wasmHandleEvent represents HandleEvent wasm bindings
+	wasmHandleEvent *HandleEvent
 	// Process
 	*lib.Process
 }
@@ -106,7 +108,7 @@ func (a *App) WaitReady(ctx context.Context) (bool, error) {
 }
 
 // SendEvent sends an event to fluentd. Shared method used by jobs.
-func (a *App) SendEvent(ctx context.Context, url string, e *TeleportEvent) error {
+func (a *App) SendEvent(ctx context.Context, url string, e *SanitizedTeleportEvent) error {
 	log := logger.Get(ctx)
 
 	if !a.Config.DryRun {
@@ -114,7 +116,7 @@ func (a *App) SendEvent(ctx context.Context, url string, e *TeleportEvent) error
 		backoffCount := sendBackoffNumTries
 
 		for {
-			err := a.Fluentd.Send(ctx, url, e.Event)
+			err := a.Fluentd.Send(ctx, url, e.SanitizedEvent)
 			if err == nil {
 				break
 			}
@@ -214,33 +216,23 @@ func (a *App) initWasm(ctx context.Context) error {
 		return nil
 	}
 
-	var fns = make([]string, 0)
-	if a.Config.WASMHandleEventFn != "" {
-		fns = append(fns, a.Config.WASMHandleEventFn)
-	}
-
-	if a.Config.WASMHandleSessionEventFn != "" {
-		fns = append(fns, a.Config.WASMHandleSessionEventFn)
-	}
-
-	a.wasmHost, err = wasm.NewHost(wasm.Options{
-		Logger:        log,
-		Test:          false,
-		Timeout:       a.Config.WASMTimeout,
-		Concurrency:   a.Config.Concurrency,
-		FunctionNames: fns,
-	})
-
-	if err != nil {
-		return trace.Wrap(err)
-	}
-
 	b, err := os.ReadFile(a.Config.WASMPlugin)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	err = a.wasmHost.LoadPlugin(b)
+	e := wasm.NewAssemblyScriptEnv(log)
+	pb := wasm.NewProtobufInterop()
+	a.wasmHandleEvent = NewHandleEvent(a.Config.WASMHandleEvent, pb)
+
+	opts := wasm.ExecutionContextPoolOptions{
+		Bytes:       b,
+		Timeout:     a.Config.WASMTimeout,
+		Concurrency: a.Config.WASMConcurrency,
+	}
+
+	a.wasmPool, err = wasm.NewExecutionContextPool(opts, e, pb, a.wasmHandleEvent)
+
 	if err != nil {
 		return trace.Wrap(err)
 	}
