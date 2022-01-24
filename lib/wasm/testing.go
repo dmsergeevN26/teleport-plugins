@@ -44,7 +44,7 @@ func (a *MockAPIClient) UpsertLock(ctx context.Context, lock types.Lock) error {
 	return nil
 }
 
-func (a *MockAPIClient) GetLatestCall(ctx context.Context) proto.Message {
+func (a *MockAPIClient) GetLatestRequest(ctx context.Context) proto.Message {
 	if len(a.messages) == 0 {
 		return nil
 	}
@@ -107,14 +107,22 @@ func (r *TestingTrait) Bind(ec *ExecutionContext) error {
 // ExportHostMethods registers getFixture() export
 func (r *TestingTrait) Export(store *wasmer.Store, importObject *wasmer.ImportObject) error {
 	importObject.Register("test", map[string]wasmer.IntoExtern{
-		"getFixtureBody": wasmer.NewFunction(store, wasmer.NewFunctionType(
-			wasmer.NewValueTypes(wasmer.I32, wasmer.I32), // n:i32, addr:usize
-			wasmer.NewValueTypes(),                       // void
-		), r.getFixtureBody),
 		"getFixtureSize": wasmer.NewFunction(store, wasmer.NewFunctionType(
 			wasmer.NewValueTypes(wasmer.I32), // n:i32
 			wasmer.NewValueTypes(wasmer.I32), // i32
 		), r.getFixtureSize),
+		"getFixtureBody": wasmer.NewFunction(store, wasmer.NewFunctionType(
+			wasmer.NewValueTypes(wasmer.I32, wasmer.I32), // n:i32, addr:usize
+			wasmer.NewValueTypes(),                       // void
+		), r.getFixtureBody),
+		"getLatestAPIRequestSize": wasmer.NewFunction(store, wasmer.NewFunctionType(
+			wasmer.NewValueTypes(),
+			wasmer.NewValueTypes(wasmer.I32), // i32
+		), r.getLatestAPIRequestSize),
+		"getLatestAPIRequestBody": wasmer.NewFunction(store, wasmer.NewFunctionType(
+			wasmer.NewValueTypes(wasmer.I32), // n:i32, addr:usize
+			wasmer.NewValueTypes(),           // void
+		), r.getLatestAPIRequestBody),
 	})
 
 	return nil
@@ -146,6 +154,39 @@ func (r *TestingTrait) getFixtureBody(args []wasmer.Value) ([]wasmer.Value, erro
 	}
 
 	bytes, err := proto.Marshal(fixture)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+
+	// DMA copy
+	copy(memory.Data()[addr:], bytes)
+
+	return nil, nil
+}
+
+// getLatestAPIRequestSize returns size of a latest API request
+func (r *TestingTrait) getLatestAPIRequestSize(args []wasmer.Value) ([]wasmer.Value, error) {
+	request := r.runner.MockAPIClient.GetLatestRequest(context.Background())
+	if request == nil {
+		return []wasmer.Value{wasmer.NewI32(0)}, trace.Errorf("There were no API requests")
+	}
+
+	size := proto.Size(request)
+
+	return []wasmer.Value{wasmer.NewI32(size)}, nil
+}
+
+// getLatestAPIRequestBody copies fixture number n to the provided memory segment
+func (r *TestingTrait) getLatestAPIRequestBody(args []wasmer.Value) ([]wasmer.Value, error) {
+	addr := int(args[0].I32())
+	memory := r.ec.Memory
+
+	request := r.runner.MockAPIClient.GetLatestRequest(context.Background())
+	if request == nil {
+		return []wasmer.Value{wasmer.NewI32(0)}, trace.Errorf("There were no API requests")
+	}
+
+	bytes, err := proto.Marshal(request)
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}

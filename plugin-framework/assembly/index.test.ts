@@ -1,6 +1,6 @@
-import { getFixture } from '../vendor/test';
+import { getFixture, getLatestAPIRequest } from '../vendor/test';
 import { handleEvent } from '.';
-import { events } from '../vendor/teleport';
+import { events, types } from '../vendor/teleport';
 
 export { 
     __protobuf_alloc,
@@ -37,7 +37,7 @@ function testSkipLoginSecretSanta(): void {
 function testAddAnnotation(): void {
     const testAccessRequest = getFixture(3)
     const result = handleEvent(testAccessRequest)
-    assert(result != null, "Request is processed")
+    assert(result != null, "Event is processed")
 
     const changedEvent = events.OneOf.decode(result as DataView);
     assert(changedEvent.AccessRequestCreate != null, "AccessRequestCreate is present")
@@ -55,5 +55,11 @@ function testLocking(): void {
     handleEvent(loginFoo)
     handleEvent(loginFoo)
     const result = handleEvent(loginFoo)
-    assert(result != null, "Request is processed")
+    assert(result != null, "Event is processed")
+
+    const request = getLatestAPIRequest()
+    assert(request != null, "API request is present")
+
+    const lock = types.LockV2.decode(request)
+    assert(lock.Spec.Target.User == "foo", "Lock user foo is generated")
 }
