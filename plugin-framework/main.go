@@ -5,6 +5,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/dgraph-io/badger/v3"
 	"github.com/gravitational/kingpin"
 	"github.com/gravitational/teleport-plugins/lib/logger"
 	"github.com/gravitational/teleport-plugins/lib/wasm"
@@ -26,7 +27,7 @@ var (
 	fixtureName     = fixture.Arg("name", "Fixture name").Required().String()
 )
 
-func runTest(pool *wasm.ExecutionContextPool, testRunner *wasm.TestRunner, log logrus.FieldLogger) {
+func runTest(pool *wasm.ExecutionContextPool, testRunner *wasm.Testing, log logrus.FieldLogger) {
 	ctx := context.Background()
 
 	c, err := pool.Get(ctx)
@@ -40,7 +41,7 @@ func runTest(pool *wasm.ExecutionContextPool, testRunner *wasm.TestRunner, log l
 	}
 }
 
-func genFixture(testRunner *wasm.TestRunner, log logrus.FieldLogger, template string, name string) {
+func genFixture(testRunner *wasm.Testing, log logrus.FieldLogger, template string, name string) {
 	err := testRunner.FixtureIndex.Add(template, name)
 	if err != nil {
 		log.Fatal(err)
@@ -57,25 +58,35 @@ func main() {
 		log.Fatal(err)
 	}
 
-	asEnv := wasm.NewAssemblyScriptEnv(log)
-	testRunner, err := wasm.NewTestRunner("fixtures")
+	db, err := badger.Open(badger.DefaultOptions("").WithInMemory(true))
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	pool, err := wasm.NewExecutionContextPool(wasm.ExecutionContextPoolOptions{
+	asEnv := wasm.NewAssemblyScriptEnv(log)
+	store := wasm.NewStore(wasm.NewBadgerPersistentStore(db), wasm.DecodeAssemblyScriptString)
+	testing, err := wasm.NewTesting("fixtures")
+	if err != nil {
+		log.Fatal(err)
+	}
+	pb := wasm.NewProtobufInterop()
+	api := wasm.NewTeleportAPI(log, testing.MockAPIClient, pb)
+
+	opts := wasm.ExecutionContextPoolOptions{
 		Timeout:     defaultTimeout,
 		Concurrency: defaultConcurrency,
 		Bytes:       b,
-	}, asEnv, testRunner)
+	}
+
+	pool, err := wasm.NewExecutionContextPool(opts, asEnv, testing, store, api, pb)
 	if err != nil {
 		log.Fatal(err)
 	}
 	switch kingpin.MustParse(app.Parse(os.Args[1:])) {
 	case test.FullCommand():
-		runTest(pool, testRunner, log)
+		runTest(pool, testing, log)
 	case fixture.FullCommand():
-		genFixture(testRunner, log, *fixtureTemplate, *fixtureName)
+		genFixture(testing, log, *fixtureTemplate, *fixtureName)
 	}
 
 }

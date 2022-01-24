@@ -16,27 +16,24 @@ limitations under the License.
 package wasm
 
 import (
-	"bytes"
-	"encoding/binary"
 	"fmt"
 	"strings"
 	"time"
-	"unicode/utf16"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/wasmerio/wasmer-go/wasmer"
 )
 
-// AsssemblyScriptEnv represents AssemblyScript env functions repository
+// AsssemblyScriptEnv represents AssemblyScript env functions
 type AsssemblyScriptEnv struct {
 	log    log.FieldLogger
 	traits []*AsssemblyScriptEnvTrait
 }
 
-// AsssemblyScriptEnvInstance represents AssemblyScript functions bound to specific instance
+// AsssemblyScriptEnvTrait represents AssemblyScript functions bound to specific instance
 type AsssemblyScriptEnvTrait struct {
 	ec  *ExecutionContext
-	log log.FieldLogger
+	env *AsssemblyScriptEnv
 }
 
 // NewAssemblyScriptEnv creates new AssemblyScriptEnv collection instance
@@ -45,7 +42,7 @@ func NewAssemblyScriptEnv(log log.FieldLogger) *AsssemblyScriptEnv {
 }
 
 func (e *AsssemblyScriptEnv) CreateTrait() Trait {
-	t := &AsssemblyScriptEnvTrait{log: e.log}
+	t := &AsssemblyScriptEnvTrait{env: e}
 	e.traits = append(e.traits, t)
 	return t
 }
@@ -109,35 +106,12 @@ func (e *AsssemblyScriptEnvTrait) ValidateImports(instance *wasmer.Instance) err
 // getString reads and returns AssemblyScript string by it's memory address. It assumes that
 // a string has the standard AS GC header.
 func (e *AsssemblyScriptEnvTrait) getString(s wasmer.Value) string {
-	memory := e.ec.Memory
-
-	addr := s.I32()
-	if addr == 0 {
-		return ""
-	}
-
-	data := memory.Data()
-	len := int32(binary.LittleEndian.Uint32(data[addr-4 : addr]))
-
-	// Copy UTF16 string to a buffer
-	utf16buf := make([]uint16, len/2)
-	for n := 0; n < int(len); n += 2 {
-		pos := addr + int32(n)
-		utf16buf[n/2] = binary.LittleEndian.Uint16(data[pos : pos+2])
-	}
-
-	// Convert UTF16 to UTF8
-	stringBuf := &bytes.Buffer{}
-	for _, r := range utf16.Decode(utf16buf) {
-		stringBuf.WriteRune(r)
-	}
-
-	return stringBuf.String()
+	return DecodeAssemblyScriptString(s, e.ec.Memory)
 }
 
 // asAbort AssemblyScript abort() function
 func (e *AsssemblyScriptEnvTrait) abort(args []wasmer.Value) ([]wasmer.Value, error) {
-	e.log.Error(fmt.Sprintf(
+	e.env.log.Error(fmt.Sprintf(
 		"Wasmer: abort! %v (%v:%v:%v)",
 		e.getString(args[0]),
 		e.getString(args[1]),
@@ -169,7 +143,7 @@ func (e *AsssemblyScriptEnvTrait) trace(args []wasmer.Value) ([]wasmer.Value, er
 		s = s + " " + strings.Join(params, ", ")
 	}
 
-	e.log.Info(s)
+	e.env.log.Info(s)
 
 	return []wasmer.Value{}, nil
 }

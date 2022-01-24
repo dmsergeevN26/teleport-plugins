@@ -21,6 +21,7 @@ import (
 	"os"
 	"time"
 
+	badger "github.com/dgraph-io/badger/v3"
 	"github.com/gravitational/teleport-plugins/lib"
 	"github.com/gravitational/teleport-plugins/lib/backoff"
 	"github.com/gravitational/teleport-plugins/lib/logger"
@@ -48,6 +49,8 @@ type App struct {
 	wasmPool *wasm.ExecutionContextPool
 	// wasmHandleEvent represents HandleEvent wasm bindings
 	wasmHandleEvent *HandleEvent
+	// badgerDB badger db
+	badgerDB *badger.DB
 	// Process
 	*lib.Process
 }
@@ -218,11 +221,36 @@ func (a *App) initWasm(ctx context.Context) error {
 
 	b, err := os.ReadFile(a.Config.WASMPlugin)
 	if err != nil {
-		log.Fatal(err)
+		return trace.Wrap(err)
 	}
+
+	a.badgerDB, err = badger.Open(badger.DefaultOptions("").WithInMemory(true))
+	if err != nil {
+		return trace.Wrap(err)
+	}
+
+	// Spawn badger cleanup job
+	a.SpawnCritical(func(ctx context.Context) error {
+		log := logger.Get(ctx)
+		ticker := time.NewTicker(5 * time.Minute)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ctx.Done():
+				return trace.Wrap(ctx.Err())
+			case <-ticker.C:
+				log.Debug("Cleaning up badger database...")
+				err := a.badgerDB.RunValueLogGC(0.7)
+				if err != nil {
+					return trace.Wrap(err)
+				}
+			}
+		}
+	})
 
 	e := wasm.NewAssemblyScriptEnv(log)
 	pb := wasm.NewProtobufInterop()
+	s := wasm.NewStore(wasm.NewBadgerPersistentStore(a.badgerDB), wasm.DecodeAssemblyScriptString)
 	a.wasmHandleEvent = NewHandleEvent(a.Config.WASMHandleEvent, pb)
 
 	opts := wasm.ExecutionContextPoolOptions{
@@ -231,7 +259,7 @@ func (a *App) initWasm(ctx context.Context) error {
 		Concurrency: a.Config.WASMConcurrency,
 	}
 
-	a.wasmPool, err = wasm.NewExecutionContextPool(opts, e, pb, a.wasmHandleEvent)
+	a.wasmPool, err = wasm.NewExecutionContextPool(opts, e, pb, a.wasmHandleEvent, s)
 
 	if err != nil {
 		return trace.Wrap(err)

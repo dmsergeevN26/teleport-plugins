@@ -16,6 +16,7 @@ export function test(): void {
     testRegularEvent();
     testSkipLoginSecretSanta();
     testAddAnnotation();
+    testLocking();
 
     trace("Success!")
 }
@@ -48,3 +49,11 @@ function testAddAnnotation(): void {
     )
 }
 
+function testLocking(): void {
+    const loginFoo = getFixture(4)
+    handleEvent(loginFoo)
+    handleEvent(loginFoo)
+    handleEvent(loginFoo)
+    const result = handleEvent(loginFoo)
+    assert(result != null, "Request is processed")
+}
